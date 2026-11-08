@@ -1,0 +1,126 @@
+name: Screenshots AnswerForU (one-off, emulator)
+
+# Builds the production release APK with the same Gradle pipeline as
+# release.yml (npm install -> expo prebuild -> CI signing patch ->
+# assembleRelease with the env-var keystore), installs it on an emulator
+# and captures real Play Store screenshots of the live app as a guest.
+# One-off asset job; the release workflow remains the shipping path.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: answerforu-screenshots
+  cancel-in-progress: false
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      # Same public identifier as release.yml (NOT a secret): the Android
+      # OAuth client ID for com.answerforu.app, inlined by Expo at bundle
+      # time, so it must be in the job env for prebuild/assembleRelease.
+      EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: "816411262872-t2liqqc83b237ofgnhlunnnv0tujvhel.apps.googleusercontent.com"
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: Install SDK platform 36 and build tools
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - name: Install JS dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Expo prebuild (generate android/)
+        env:
+          CI: '1'
+          EXPO_NO_TELEMETRY: '1'
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Install pinned NDK / CMake if the generated project requests them
+        run: |
+          NDK="$(grep -rhoP 'ndkVersion[^0-9]*\K[0-9]+\.[0-9]+\.[0-9]+' android/ --include=build.gradle | head -1 || true)"
+          if [ -n "${NDK:-}" ]; then echo "Installing ndk;$NDK"; sdkmanager "ndk;$NDK"; fi
+          sdkmanager "cmake;3.22.1" || true
+
+      - name: Inject env-var signing into generated android tree (CI only)
+        run: python3 ci/apply-signing.py
+
+      - name: Decode upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+          ls -l "$RUNNER_TEMP/upload-keystore.jks"
+
+      - name: Build signed release APK
+        working-directory: android
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/upload-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Show APK
+        run: ls -lh android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Free disk space for the emulator
+        # Fixed pattern from Snake Classic (commits 06e481c + bd37908): the
+        # default runner disk is too full for AVD creation after the SDK +
+        # Gradle caches. NOTE: never delete "$AGENT_TOOLSDIRECTORY" here —
+        # it holds the JDK under /opt/hostedtoolcache and sdkmanager dies
+        # without it.
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost || true
+          sudo docker image prune -af || true
+          df -h /
+
+      - name: Run emulator and capture screenshots
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -memory 3072 -partition-size 4096
+          emulator-boot-timeout: 900
+          disable-animations: true
+          script: bash scripts/shots/run.sh
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnswerForU-screenshots
+          path: screenshots/
+          retention-days: 14
+          if-no-files-found: warn
