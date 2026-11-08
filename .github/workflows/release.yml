@@ -77,6 +77,18 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
           ls -l "$RUNNER_TEMP/upload-keystore.jks"
 
+      - name: Warm Gradle wrapper distribution (retries — services.gradle.org was returning 504/timeout on Nov 8, 2026)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          for i in 1 2 3 4 5 6 7 8; do
+            if ./gradlew --version >/dev/null 2>&1; then echo "Gradle distribution ready (attempt $i)"; exit 0; fi
+            echo "Gradle distribution download attempt $i failed; waiting 45s"
+            sleep 45
+          done
+          echo "Gradle distribution still unavailable after retries" >&2
+          exit 1
+
       - name: Build signed release AAB
         working-directory: android
         env:
