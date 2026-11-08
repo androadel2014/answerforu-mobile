@@ -3,8 +3,10 @@
 # Runs on the CI host with adb connected to a booted emulator.
 # Captures the REAL app UI via screencap, running the production release APK
 # against the LIVE backend (https://answerforu.com) as a guest. No account
-# is created, nothing is posted or saved; every screen is reached with real
-# taps on the app's own controls (bottom nav, Learn buttons, More tiles).
+# is created, nothing is posted or saved. All navigation uses the app's own
+# on-screen controls (bottom nav, section buttons, tiles) — deliberately NO
+# hardware-back: with predictive back enabled, an injected keyevent 4
+# finished the activity in run 2 and backgrounded the app.
 set -x
 PKG="com.answerforu.app"
 OUT="screenshots"
@@ -39,6 +41,20 @@ wait_for() {
   return 1
 }
 
+tap_with_scroll() {
+  # $1 = text, $2 = mode, $3 = max attempts. Scrolls the current screen
+  # between attempts for targets that live below the fold (off-screen
+  # ScrollView children are absent from the uiautomator hierarchy).
+  local i=1
+  while [ $i -le "$3" ]; do
+    if tap_text "$1" "$2"; then echo "tapped '$1' on attempt $i"; return 0; fi
+    echo "tap attempt $i for '$1' failed; scrolling"
+    adb shell input swipe 540 1400 540 700 300 || true
+    sleep 2; i=$((i+1))
+  done
+  return 1
+}
+
 snap() { adb exec-out screencap -p > "$OUT/$1"; }
 
 adb wait-for-device
@@ -61,58 +77,68 @@ if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
 fi
 sleep 8
 snap debug-after-start-13s.png
-adb shell dumpsys activity activities 2>/dev/null | grep -i -A2 -B2 "answerforu" > "$OUT/debug-activities.txt" || true
 
 # If a system permission dialog appears (e.g. notifications), decline politely.
 if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
 if tap_text "Don't allow" contains; then echo "permission dialog dismissed (ascii)"; sleep 1; fi
 
-# The app starts in Arabic (its default). Wait for the Arabic home tab,
-# then switch to English with the header language chip (a real in-app
-# control that cycles ar -> en) so the capture set is one consistent language.
+# The app starts in Arabic (its default). Switch to English with the header
+# language chip (a real in-app control that cycles ar -> en) so the capture
+# set is one consistent language.
 wait_for "الرئيسية" 60 || sleep 5
 if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 4; fi
 
-# 1) Home / journey hub (guest view, live content).
+# 1) Home (guest view, live content).
 wait_for "Explore sections" 60 || true
 sleep 3
 snap 01-home.png
 
-# 2) Journey.
+# 2) Journey. (In v3.6.0 the guest Journey currently lands on the app's own
+# error boundary — ReferenceError: Btn in JourneyScreen, logcat run 2 — so
+# try once, tap the boundary's own Retry once, then capture what is real.)
 tap_text "Journey" exact || true
-wait_for "My U.S. Journey" 60 || true
-wait_for "Choose a stage" 60 || true
+if ! wait_for "Choose a stage" 45; then
+  if ui_has "Could not open this section"; then
+    echo "journey error boundary shown; tapping its Retry"
+    tap_text "Retry" exact || true
+    wait_for "Choose a stage" 45 || true
+  fi
+fi
 sleep 2
 snap 02-journey.png
 
-# 3) Marketplace (community places load from the live API).
+# 3) Marketplace (community places load from the live API). Anchor avoids
+# the raw "&" (uiautomator XML escapes it as &amp;).
 tap_text "Marketplace" exact || true
-wait_for "Marketplace & Community" 60 || true
-sleep 8
+wait_for "Marketplace" 60 || true
+sleep 6
+# Gentle scroll so the first place card is fully in frame.
+adb shell input swipe 540 1400 540 950 300 || true
+sleep 4
 snap 03-marketplace.png
 
 # 4) Learn hub -> U.S. Citizenship.
 tap_text "Learn" exact || true
 sleep 3
-tap_text "U.S. Citizenship" contains || true
+tap_with_scroll "U.S. Citizenship" contains 3 || true
 wait_for "Your path to U.S. citizenship" 60 || true
 sleep 3
 snap 04-citizenship.png
 
-# Back to Learn -> Survival English.
-adb shell input keyevent 4
+# 5) Survival English: return via the Learn bottom-nav tab (no hardware
+# back), then the Survival English button (scroll-assisted if needed).
+tap_text "Learn" exact || true
 sleep 3
-tap_text "Survival English" contains || true
+tap_with_scroll "Survival English" contains 3 || true
 wait_for "Passport, please" 60 || true
 sleep 2
 snap 05-survival-english.png
 
-# 6) Feed: via the More tab's Feed tile; fallback = Marketplace bottom button.
-adb shell input keyevent 4 || true
-sleep 2
+# 6) Feed: via the More tab's Feed tile, scroll-assisted; fallback = the
+# Marketplace screen's own "Open community feed" button.
 tap_text "More" exact || true
 sleep 3
-if tap_text "Feed" exact; then
+if tap_with_scroll "Feed" exact 4; then
   echo "feed opened via More tab"
 else
   echo "More/Feed tap failed; trying Marketplace fallback"
@@ -130,8 +156,7 @@ snap 06-feed.png
 
 dump_ui
 cp /tmp/dump.xml "$OUT/debug-final-dump.xml" || true
-# Diagnostics (always): process state + logcat, so a launch failure is
-# explainable from the artifact instead of guessed.
+adb shell dumpsys activity activities 2>/dev/null | grep -i -A2 -B2 "answerforu" > "$OUT/debug-activities.txt" || true
 adb shell pidof "$PKG" > "$OUT/debug-pid.txt" 2>/dev/null || echo "no process" > "$OUT/debug-pid.txt"
 adb logcat -d -b crash > "$OUT/logcat-crash.txt" 2>/dev/null || true
 adb logcat -d > "$OUT/logcat-full.txt" 2>/dev/null || true
