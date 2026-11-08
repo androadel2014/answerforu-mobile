@@ -48,8 +48,20 @@ sleep 2
 
 adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell pm clear "$PKG" || true
-adb shell am start -n "$PKG/.MainActivity" || adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1
-sleep 12
+adb logcat -c || true
+adb shell am start -W -n "$PKG/.MainActivity" || true
+sleep 5
+snap debug-after-start-5s.png
+echo "pid after am start: $(adb shell pidof "$PKG" || echo NONE)"
+if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
+  echo "no app process after am start; trying monkey launcher"
+  adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 || true
+  sleep 5
+  echo "pid after monkey: $(adb shell pidof "$PKG" || echo NONE)"
+fi
+sleep 8
+snap debug-after-start-13s.png
+adb shell dumpsys activity activities 2>/dev/null | grep -i -A2 -B2 "answerforu" > "$OUT/debug-activities.txt" || true
 
 # If a system permission dialog appears (e.g. notifications), decline politely.
 if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
@@ -118,4 +130,9 @@ snap 06-feed.png
 
 dump_ui
 cp /tmp/dump.xml "$OUT/debug-final-dump.xml" || true
+# Diagnostics (always): process state + logcat, so a launch failure is
+# explainable from the artifact instead of guessed.
+adb shell pidof "$PKG" > "$OUT/debug-pid.txt" 2>/dev/null || echo "no process" > "$OUT/debug-pid.txt"
+adb logcat -d -b crash > "$OUT/logcat-crash.txt" 2>/dev/null || true
+adb logcat -d > "$OUT/logcat-full.txt" 2>/dev/null || true
 ls -la "$OUT"
