@@ -1,0 +1,28 @@
+// CI-only Gradle init script: put Google's Maven Central mirror FIRST in
+// the pluginManagement and dependencyResolutionManagement repository
+// lists of every build in the composite (including included builds).
+//
+// Why: repo.maven.apache.org redirects the kotlin-compiler-embeddable jar
+// to github.com release downloads, which returned repeated 504 Gateway
+// Time-outs from the GitHub Actions runners on Nov 8, 2026 and failed
+// otherwise-healthy builds. The GCS mirror serves the same Maven Central
+// artifacts directly. A 404 on the mirror still falls through to the
+// original repositories, so this only changes where bytes come from,
+// never which artifacts/versions are resolved.
+settingsEvaluated { settings ->
+    def mirrorUrl = 'https://maven-central.storage-download.googleapis.com/maven2'
+    try {
+        def pm = settings.pluginManagement.repositories
+        def m1 = pm.maven { url mirrorUrl }
+        pm.remove(m1)
+        pm.add(0, m1)
+    } catch (Exception ignored) {
+    }
+    try {
+        def drm = settings.dependencyResolutionManagement.repositories
+        def m2 = drm.maven { url mirrorUrl }
+        drm.remove(m2)
+        drm.add(0, m2)
+    } catch (Exception ignored) {
+    }
+}

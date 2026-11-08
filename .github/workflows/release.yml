@@ -94,6 +94,12 @@ jobs:
           echo "Gradle distribution still unavailable after retries" >&2
           exit 1
 
+      - name: Install CI Maven mirror init script (GCS Maven Central mirror first)
+        run: |
+          mkdir -p "$HOME/.gradle/init.d"
+          cp ci/maven-mirror.init.gradle "$HOME/.gradle/init.d/"
+          ls -l "$HOME/.gradle/init.d/"
+
       - name: Build signed release AAB
         working-directory: android
         env:
