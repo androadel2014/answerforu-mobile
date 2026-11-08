@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState}from"react";
 import{Linking,Pressable,StyleSheet,View}from"react-native";
 import{api,rows}from"../api/client";
-import{AwareTextInput,Card,KeyboardAwareScrollView,Loading,Pill,Txt}from"../components/UI";
+import{AwareTextInput,Btn,Card,KeyboardAwareScrollView,Loading,Pill,Txt}from"../components/UI";
 import{ResourceCategorySection}from"../components/ResourceCards";
 import{getStepResourceBinding}from"../data/resourceConfig";
 import{C}from"../theme";

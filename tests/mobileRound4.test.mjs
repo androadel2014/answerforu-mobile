@@ -9,10 +9,10 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const data=p=>JSON.parse(read(p));
 const app=data('app.json');
-test('v3.6.0 / code14 / com.answerforu.app / web6.3.7 match',()=>{
- assert.equal(app.expo.version,'3.6.0');assert.equal(app.expo.android.versionCode,14);
+test('v3.6.1 / code15 / com.answerforu.app / web6.3.7 match',()=>{
+ assert.equal(app.expo.version,'3.6.1');assert.equal(app.expo.android.versionCode,15);
  assert.equal(app.expo.android.package,'com.answerforu.app');assert.equal(app.expo.extra.webMasterVersion,'6.3.7');
- assert.equal(data('package.json').version,'3.6.0');
+ assert.equal(data('package.json').version,'3.6.1');
 });
 test('website civic banks preserve counts 100 / 128 and authoritative dataset',()=>{
  const banks=data('WEBSITE-DEPLOY/public/api/content-static/citizenship-vocabulary.json');
@@ -102,4 +102,12 @@ test('native Google OAuth uses existing website bridge and same user JWT',()=>{
  assert.match(source,/api\.googleMobile\(token\)/);assert.match(source,/EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID/);
  assert.match(read('src/api/client.js'),/\/api\/auth\/oauth\/google\/mobile/);
  assert.match(read('GOOGLE-SETUP.md'),/com\.answerforu\.app/);
+});
+
+// Regression: guest Journey evaluates this JSX branch and requires Btn to be in scope.
+test('guest Journey sign-in banner resolves the Btn component',()=>{
+ const src=read('src/screens/JourneyScreen.js');
+ assert.match(src,/import\s*\{[^}]*\bBtn\b[^}]*\}\s*from\s*["']\.\.\/components\/UI["']/);
+ assert.match(src,/!user\s*\?/);
+ assert.match(src,/<Btn\s+lang=\{lang\}/);
 });
