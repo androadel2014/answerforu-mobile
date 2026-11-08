@@ -1,0 +1,308 @@
+[
+  {
+    "en": {
+      "title": "Check your eligibility",
+      "summary": "Review permanent residence, physical presence, travel, and good moral character before applying.",
+      "tasks": [
+        "Use the eligibility calculator above and choose your filing basis.",
+        "Check the Resident Since date on your green card and your travel history.",
+        "Review residence, physical presence and any moves between states."
+      ],
+      "documents": "Green card, date of U.S. entry, travel and address history.",
+      "cost": "Free",
+      "time": "Before filing",
+      "mistake": "Marriage alone does not qualify you for the three-year route, and the 90-day rule does not apply to marriage requirements.",
+      "done": "You know which filing route applies, and your travel record is accurate."
+    },
+    "es": {
+      "title": "Comprueba si reúnes los requisitos",
+      "summary": "Antes de presentar la solicitud, revisa residencia permanente, presencia física, viajes y buena conducta moral.",
+      "tasks": [
+        "Usa la calculadora de elegibilidad y elige la base para solicitar.",
+        "Revisa la fecha «Resident Since» de tu tarjeta de residencia y tu historial de viajes.",
+        "Comprueba residencia, presencia física y mudanzas entre estados."
+      ],
+      "documents": "Tarjeta de residencia, fecha de entrada a EE. UU., historial de viajes y domicilios.",
+      "cost": "Gratis",
+      "time": "Antes de presentar la solicitud",
+      "mistake": "El matrimonio por sí solo no basta para la vía de tres años; los 90 días de anticipación no se aplican al matrimonio.",
+      "done": "Sabes qué vía te corresponde y tu historial de viajes es correcto."
+    },
+    "ar": {
+      "title": "تأكد من أهليتك",
+      "summary": "راجع سنوات الإقامة والوجود الفعلي والسفر وحسن السيرة قبل البدء."
+    }
+  },
+  {
+    "en": {
+      "title": "Prepare Form N-400 and supporting records",
+      "summary": "Complete your naturalization application and collect documents supporting the information you provide.",
+      "tasks": [
+        "Gather your green card, passports, travel, residence, job and tax histories.",
+        "Review every N-400 answer, especially dates and legal questions.",
+        "Gather marriage, name-change or military documents where applicable."
+      ],
+      "documents": "Form N-400, green card copy, passports, relevant supporting documents, certified translations if required.",
+      "cost": "No government fee until you file",
+      "time": "Depends on your documents",
+      "mistake": "Leaving out previous trips or addresses.",
+      "done": "All application answers and attachments are complete and consistent."
+    },
+    "es": {
+      "title": "Prepara el formulario N-400 y los documentos",
+      "summary": "Completa la solicitud de naturalización y reúne los documentos que respaldan tus datos.",
+      "tasks": [
+        "Reúne tarjeta de residencia, pasaportes, viajes, domicilios, trabajo e impuestos.",
+        "Revisa todas las respuestas del N-400, especialmente fechas y preguntas legales.",
+        "Prepara documentos de matrimonio, cambio de nombre o servicio militar si corresponden."
+      ],
+      "documents": "Formulario N-400, copia de la tarjeta, pasaportes, documentos adicionales y traducciones certificadas si se exigen.",
+      "cost": "Sin tasa gubernamental hasta presentar",
+      "time": "Depende de tus documentos",
+      "mistake": "Omitir viajes o direcciones anteriores.",
+      "done": "La solicitud y los documentos están completos y son coherentes."
+    },
+    "ar": {
+      "title": "جهّز N-400 والمستندات الداعمة",
+      "summary": "املأ كل بيانات نموذج التجنّس واحفظ أدلة المعلومات المقدّمة."
+    }
+  },
+  {
+    "en": {
+      "title": "File the application and pay",
+      "summary": "Choose online or paper filing, and check reduced-fee and waiver eligibility.",
+      "tasks": [
+        "Confirm the current N-400 edition and filing fee at USCIS.",
+        "File online if your circumstances permit, otherwise file on paper.",
+        "For paper filing, check whether you qualify for the $380 reduced fee or Form I-912 fee waiver."
+      ],
+      "documents": "Completed application, supporting evidence and payment or fee-waiver request.",
+      "cost": "$710 online / $760 paper / $380 reduced paper fee; waiver if eligible",
+      "time": "At filing; processing times vary",
+      "mistake": "Sending the wrong amount or trying to submit an online fee-waiver request.",
+      "done": "You have submitted your application and kept confirmation of filing."
+    },
+    "es": {
+      "title": "Presenta la solicitud y paga",
+      "summary": "Elige presentar por internet o en papel y comprueba si tienes derecho a reducción o exención de tasas.",
+      "tasks": [
+        "Revisa la edición vigente del N-400 y las tasas en USCIS.",
+        "Presenta por internet si tu caso lo permite; si no, en papel.",
+        "Para solicitudes en papel, comprueba si puedes pagar la tasa reducida de $380 o pedir exención con I-912."
+      ],
+      "documents": "Solicitud completa, pruebas y pago o petición de exención.",
+      "cost": "$710 en línea / $760 en papel / $380 tasa reducida en papel; exención si cumples",
+      "time": "Al presentar; los plazos varían",
+      "mistake": "Enviar un importe incorrecto o pedir exención de tasas en una solicitud en línea.",
+      "done": "Has enviado la solicitud y guardado el comprobante."
+    },
+    "ar": {
+      "title": "قدّم الطلب وادفع",
+      "summary": "اختر التقديم الإلكتروني أو الورقي وراجع شروط الإعفاء والرسم المخفض."
+    }
+  },
+  {
+    "en": {
+      "title": "Receipt notice and case tracking",
+      "summary": "Keep your receipt number and monitor all official correspondence.",
+      "tasks": [
+        "Save the USCIS receipt number.",
+        "Monitor your case status and online and postal mail.",
+        "Update your address after moving and respond to every USCIS notice."
+      ],
+      "documents": "USCIS receipt notice and case number.",
+      "cost": "Free",
+      "time": "From receipt through interview; varies by office",
+      "mistake": "Relying on unofficial alerts or missing USCIS mail.",
+      "done": "Your receipt is saved and you monitor updates."
+    },
+    "es": {
+      "title": "Recibo y seguimiento del caso",
+      "summary": "Guarda el número de recibo y revisa la correspondencia oficial.",
+      "tasks": [
+        "Guarda tu número de recibo de USCIS.",
+        "Consulta el estado del caso y el correo postal y electrónico.",
+        "Actualiza tu dirección al mudarte y responde a todos los avisos."
+      ],
+      "documents": "Aviso de recepción de USCIS y número de caso.",
+      "cost": "Gratis",
+      "time": "Desde el recibo hasta la entrevista; depende de la oficina",
+      "mistake": "Confiar en avisos no oficiales o no leer cartas de USCIS.",
+      "done": "Conservas el recibo y sigues los cambios del caso."
+    },
+    "ar": {
+      "title": "الإيصال ومتابعة القضية",
+      "summary": "احتفظ برقم الإيصال وتابع المراسلات عبر القنوات الرسمية."
+    }
+  },
+  {
+    "en": {
+      "title": "Biometrics appointment",
+      "summary": "USCIS may schedule fingerprints, a photograph, and a signature.",
+      "tasks": [
+        "Check the notice for the appointment time and address.",
+        "Bring your green card, photo ID and appointment notice.",
+        "If you cannot attend, follow USCIS rescheduling instructions."
+      ],
+      "documents": "Green card, biometrics notice and government-issued photo ID.",
+      "cost": "No separate N-400 biometrics fee",
+      "time": "Per the USCIS notice",
+      "mistake": "Showing up at the wrong time or without identification.",
+      "done": "You attended the appointment or USCIS waived it."
+    },
+    "es": {
+      "title": "Cita de datos biométricos",
+      "summary": "USCIS podría citarte para huellas dactilares, fotografía y firma.",
+      "tasks": [
+        "Comprueba la hora y dirección del aviso de cita.",
+        "Lleva tu tarjeta de residencia, identificación con foto y aviso.",
+        "Si no puedes asistir, sigue las instrucciones de USCIS para cambiar la cita."
+      ],
+      "documents": "Tarjeta de residencia, aviso de biometría e identificación oficial con foto.",
+      "cost": "Sin tasa biométrica N-400 aparte",
+      "time": "Según el aviso de USCIS",
+      "mistake": "Presentarte en otro horario o sin identificación.",
+      "done": "Asististe a la cita o USCIS te eximió de ella."
+    },
+    "ar": {
+      "title": "موعد البصمات والبيومتري",
+      "summary": "قد تحتاج بصمات وصورة وتوقيعًا في الموعد المذكور بالإشعار."
+    }
+  },
+  {
+    "en": {
+      "title": "Study plan for English and civics",
+      "summary": "Choose the right civics question bank using your N-400 filing date and study regularly.",
+      "tasks": [
+        "Select the 2008 or 2025 test based on your N-400 filing date.",
+        "Review official questions with translations and audio below.",
+        "Practice the oral mock test and revisit missed answers daily."
+      ],
+      "documents": "USCIS materials and reading/writing vocabulary lists.",
+      "cost": "Free practice here",
+      "time": "Daily plan until interview",
+      "mistake": "Studying only 100 questions when your application falls under the 2025 test.",
+      "done": "You regularly pass mock tests and practice English unless exempt."
+    },
+    "es": {
+      "title": "Plan de estudio de inglés y educación cívica",
+      "summary": "Elige el banco de preguntas según la fecha de presentación del N-400 y estudia con regularidad.",
+      "tasks": [
+        "Elige la versión 2008 o 2025 según la fecha en que presentaste el N-400.",
+        "Repasa las preguntas oficiales con traducción y audio de abajo.",
+        "Practica el simulacro oral y repasa tus errores cada día."
+      ],
+      "documents": "Materiales de USCIS y listas de vocabulario de lectura y escritura.",
+      "cost": "Práctica gratuita aquí",
+      "time": "Plan diario hasta la entrevista",
+      "mistake": "Estudiar solo 100 preguntas cuando se aplica la prueba de 2025.",
+      "done": "Apruebas los simulacros habitualmente y practicas inglés si no estás exento."
+    },
+    "ar": {
+      "title": "خطة دراسة الإنجليزية والمدنيات",
+      "summary": "اختر بنك الأسئلة المناسب لتاريخ تقديم طلبك، ودرّب نفسك بانتظام."
+    }
+  },
+  {
+    "en": {
+      "title": "The interview and test",
+      "summary": "The officer reviews your N-400, assesses spoken English, and tests civics, reading and writing as required.",
+      "tasks": [
+        "Arrive on time with your notice, green card, photo ID and current and expired passports.",
+        "Answer truthfully about work, travel, addresses and legal matters.",
+        "Take the oral civics, reading and writing tests unless an exception applies."
+      ],
+      "documents": "Interview notice, green card, passports and travel documents, photo ID, and other N-400 documents.",
+      "cost": "Included in filing fee; travel or document costs may apply",
+      "time": "At the scheduled interview",
+      "mistake": "Memorizing incorrect information about your application or using an outdated official’s name.",
+      "done": "You attend and receive your interview result or next-step instructions."
+    },
+    "es": {
+      "title": "Entrevista y examen",
+      "summary": "El funcionario revisa tu N-400, evalúa el inglés hablado y realiza las pruebas requeridas.",
+      "tasks": [
+        "Llega a tiempo con el aviso, tarjeta de residencia, identificación y pasaportes vigentes y caducados.",
+        "Contesta con sinceridad sobre trabajo, viajes, domicilios y asuntos legales.",
+        "Realiza las pruebas orales de educación cívica, lectura y escritura salvo que tengas una excepción."
+      ],
+      "documents": "Aviso de entrevista, tarjeta de residencia, pasaportes, documentos de viaje, identificación y documentos del N-400.",
+      "cost": "Incluido en la tasa; podrían existir gastos de viaje y documentos",
+      "time": "Durante la entrevista programada",
+      "mistake": "Memorizar información incorrecta del formulario o usar el nombre de un funcionario anterior.",
+      "done": "Asistes y recibes el resultado o instrucciones."
+    },
+    "ar": {
+      "title": "المقابلة والاختبار",
+      "summary": "الضابط يراجع N-400 ويتحقق من تحدثك بالإنجليزية ويجري اختبار المدنيات والقراءة والكتابة بحسب حالتك."
+    }
+  },
+  {
+    "en": {
+      "title": "USCIS decision and possible retest",
+      "summary": "USCIS may approve, continue or deny your case; you usually retake only a failed test component.",
+      "tasks": [
+        "Read your decision notice and any request for evidence.",
+        "If needed, study only the English or civics component you did not pass.",
+        "Attend the retest scheduled by USCIS, usually within 60–90 days."
+      ],
+      "documents": "Decision notice and any requested evidence.",
+      "cost": "No new fee just to repeat one test component on the same case",
+      "time": "Retest usually 60–90 days after the first test",
+      "mistake": "Confusing continued review with denial or ignoring evidence deadlines.",
+      "done": "You have a final decision or are following USCIS instructions."
+    },
+    "es": {
+      "title": "Decisión de USCIS y posible repetición",
+      "summary": "USCIS puede aprobar, continuar o denegar el caso; normalmente repites solo la parte del examen que no aprobaste.",
+      "tasks": [
+        "Lee la decisión y cualquier solicitud de pruebas adicionales.",
+        "Si es necesario, estudia solo el componente de inglés o civismo que no aprobaste.",
+        "Acude a la repetición fijada por USCIS, normalmente a los 60–90 días."
+      ],
+      "documents": "Aviso de decisión y documentos adicionales solicitados.",
+      "cost": "Sin nueva tasa por repetir una parte del examen en el mismo caso",
+      "time": "Repetición normalmente 60–90 días después del primer examen",
+      "mistake": "Confundir la revisión pendiente con una denegación o ignorar los plazos.",
+      "done": "Tienes decisión definitiva o sigues las instrucciones de USCIS."
+    },
+    "ar": {
+      "title": "قرار USCIS وإعادة الاختبار عند الحاجة",
+      "summary": "قد يصدر قبول أو استمرار للمراجعة أو رفض، وعند رسوب جزء يُعاد ذلك الجزء فقط."
+    }
+  },
+  {
+    "en": {
+      "title": "Oath ceremony and what comes next",
+      "summary": "You become a U.S. citizen after taking the oath, then obtain your new documents.",
+      "tasks": [
+        "Attend the oath ceremony with your notice, green card and required documents.",
+        "Check your naturalization certificate before leaving and keep it safe.",
+        "Apply for a U.S. passport, register to vote if eligible and update your SSA record."
+      ],
+      "documents": "Form N-445 notice, green card, photo ID, and naturalization certificate once issued.",
+      "cost": "Passport and later service fees are separate",
+      "time": "Oath scheduled after approval; depends on office",
+      "mistake": "Assuming you are already a citizen immediately after passing the interview.",
+      "done": "You take the oath, receive your certificate and start post-naturalization steps."
+    },
+    "es": {
+      "title": "Ceremonia del juramento y siguientes pasos",
+      "summary": "Te conviertes en ciudadano de EE. UU. tras el juramento; después gestionas tus documentos nuevos.",
+      "tasks": [
+        "Asiste a la ceremonia con el aviso, tarjeta de residencia y documentos requeridos.",
+        "Comprueba el certificado de naturalización antes de salir y guárdalo bien.",
+        "Solicita pasaporte estadounidense, regístrate para votar si puedes y actualiza tu registro en el SSA."
+      ],
+      "documents": "Aviso N-445, tarjeta de residencia, identificación y certificado tras recibirlo.",
+      "cost": "El pasaporte y otros servicios se pagan aparte",
+      "time": "Juramento tras la aprobación, según la oficina",
+      "mistake": "Creer que ya eres ciudadano al aprobar la entrevista, antes de jurar.",
+      "done": "Juras, recibes el certificado y comienzas los trámites posteriores."
+    },
+    "ar": {
+      "title": "حفل القسم وما بعد الجنسية",
+      "summary": "تصبح مواطنًا بعد أداء القسم، ثم تبدأ خطوات الوثائق والحقوق الجديدة."
+    }
+  }
+]

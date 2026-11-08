@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "AnswerForU",
+    "slug": "answerforu-site-parity",
+    "version": "3.6.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "answerforu",
+    "android": {
+      "package": "com.answerforu.app",
+      "versionCode": 14,
+      "softwareKeyboardLayoutMode": "resize",
+      "predictiveBackGestureEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B1220"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.answerforu.app"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-image-picker",
+      "expo-document-picker",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow AnswerForU to practice spoken civics answers.",
+          "speechRecognitionPermission": "Allow AnswerForU to transcribe your practice answers."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "extra": {
+      "apiBaseUrl": "https://answerforu.com",
+      "webMasterVersion": "6.3.7",
+      "cleanMobileVersion": "3.6.0",
+      "googleWebClientId": "816411262872-hhf8r29j0gt9p2russi232ji7vgmq1oj.apps.googleusercontent.com",
+      "googleAndroidClientId": "",
+      "googleIosClientId": ""
+    }
+  }
+}

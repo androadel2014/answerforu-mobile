@@ -1,0 +1,8 @@
+# CI / local build artifacts — native projects are generated in CI by expo prebuild
+node_modules/
+.expo/
+dist/
+dist-android/
+android/
+ios/
+*.log

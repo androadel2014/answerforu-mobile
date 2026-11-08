@@ -1,0 +1,7 @@
+AnswerForU Native 3.3.0
+- Static JS/JSX syntax validation: 38/38 PASS via TypeScript transpileModule.
+- Relative import resolution: PASS.
+- app.json JSON parse: PASS.
+- User interface routes and API client compared against bundled website 6.1.49 source: static inspection.
+- Expo package installation, Metro bundling, EAS cloud build, Android emulator, and on-device authentication were NOT run in this environment.
+Run TEST-BUNDLE.bat then test login / community CRUD / Learn / My Requests / Admin on a physical Android test device.

@@ -1,0 +1,1 @@
+export function filterUsers(users,query){const q=String(query||'').trim().toLocaleLowerCase();return !q?users:users.filter(u=>[u.display_name,u.name,u.username,u.email].some(v=>String(v||'').toLocaleLowerCase().includes(q)));}

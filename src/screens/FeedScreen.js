@@ -1,0 +1,23 @@
+import React,{useCallback,useEffect,useState}from'react';
+import{View,Pressable}from'react-native';
+import{api,rows}from'../api/client';
+import{AwareTextInput,Btn,Card,Empty,Loading,Screen,Txt}from'../components/UI';
+import{C}from'../theme';import{tr}from'../i18n';
+import{friendlyError}from'../logic/appSafety.mjs';
+import{confirmAction}from'../logic/confirmAction';
+export default function FeedScreen({lang,navigate,user}){
+ const[items,setItems]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[draft,setDraft]=useState(''),[posting,setPosting]=useState(false),[editing,setEditing]=useState(null),[editText,setEditText]=useState('');
+ const T=(a,e,s)=>tr(lang,a,e,s);
+ const load=useCallback(async()=>{try{setLoading(true);setError('');setItems(rows(await api.posts(),['posts']))}catch(e){setError(friendlyError(e,lang))}finally{setLoading(false)}},[lang]);useEffect(()=>{load()},[load]);
+ async function like(p){if(!user){navigate('auth');return;}try{const d=await api.likePost(p.id);setItems(xs=>xs.map(x=>x.id===p.id?{...x,is_liked:d.is_liked??d.liked,likes_count:d.likes_count??x.likes_count}:x))}catch(e){setError(friendlyError(e,lang))}}
+ async function post(){if(!user){navigate('auth');return;}if(!draft.trim())return;try{setPosting(true);await api.createPost(draft.trim());setDraft('');await load()}catch(e){setError(friendlyError(e,lang))}finally{setPosting(false)}}
+ async function saveEdit(p){try{setPosting(true);await api.editPost(p.id,editText.trim(),p.category||'general');setEditing(null);await load()}catch(e){setError(friendlyError(e,lang))}finally{setPosting(false)}}
+ function remove(p){confirmAction({title:T('تحذف المنشور؟','Delete this post?','¿Eliminar publicación?'),message:T('مش هتقدر ترجّعه بعد الحذف.','This cannot be undone.','No se puede deshacer.'),cancelLabel:T('إلغاء','Cancel','Cancelar'),confirmLabel:T('حذف','Delete','Eliminar'),onConfirm:async()=>{try{setPosting(true);await api.deletePost(p.id);await load()}catch(e){setError(friendlyError(e,lang))}finally{setPosting(false)}}})}
+ return <Screen lang={lang}>
+ <View style={{gap:6}}><Txt lang={lang} style={{fontSize:25}} weight="900">{T('المجتمع','Community feed','Comunidad')}</Txt><Txt lang={lang} style={{color:C.muted}}>{T('اسأل، شارك خبرتك، وساعد غيرك.','Ask questions and share your experience.','Pregunta y comparte tus experiencias.')}</Txt></View>
+ <Card style={{gap:10}}><AwareTextInput multiline value={draft} onChangeText={setDraft} placeholder={T('إيه اللي حابب تشاركه؟','What would you like to share?','¿Qué quieres compartir?')} style={{backgroundColor:'#fff',borderWidth:1,borderColor:C.line,borderRadius:14,padding:12,minHeight:90,fontSize:16,textAlignVertical:'top'}}/><Btn lang={lang} variant="blue" disabled={posting} title={T('نشر','Post','Publicar')} onPress={post}/></Card>
+ {error?<Card style={{backgroundColor:C.dangerBg}}><Txt lang={lang} style={{color:C.red}}>{error}</Txt><Btn lang={lang} title={T('إعادة المحاولة','Retry','Reintentar')} variant="light" onPress={load}/></Card>:null}
+ {loading?<Loading lang={lang}/>:items.length?items.map((p,i)=>{const mine=user&&String(p.user_id||p.author_id||p.user?.id)===String(user.id||user.user_id);return <Card key={p.id||i} style={{gap:10}}><Txt lang={lang} style={{color:C.muted}} weight="800">{p.author_name||p.user_name||p.username||T('عضو في المجتمع','Community member','Miembro')}</Txt>{editing===p.id?<><AwareTextInput value={editText} multiline onChangeText={setEditText} style={{minHeight:88,borderWidth:1,borderColor:C.line,padding:10,fontSize:16}}/><Btn lang={lang} title={T('حفظ التعديل','Save edit','Guardar edición')} onPress={()=>saveEdit(p)} variant="blue" disabled={posting}/><Btn lang={lang} title={T('إلغاء','Cancel','Cancelar')} onPress={()=>setEditing(null)} variant="light"/></>:<Pressable onPress={()=>navigate('postDetail',{post:p})}><Txt lang={lang} style={{lineHeight:25}}>{p.content||p.text}</Txt></Pressable>}
+ <View style={{flexDirection:'row',gap:7,flexWrap:'wrap'}}><Btn lang={lang} title={`${p.is_liked?'♥':'♡'} ${p.likes_count||0}`} onPress={()=>like(p)} variant="light"/><Btn lang={lang} title={T('تعليقات','Comments','Comentarios')} variant="light" onPress={()=>navigate('postDetail',{post:p})}/>{mine?<><Btn lang={lang} title={T('تعديل','Edit','Editar')} variant="light" onPress={()=>{setEditing(p.id);setEditText(p.content||p.text||'')}}/><Btn lang={lang} title={T('حذف','Delete','Eliminar')} variant="danger" onPress={()=>remove(p)}/></>:null}</View></Card>}):<Empty lang={lang} title={T('لسه مفيش منشورات','No posts yet','Sin publicaciones')} body={T('كن أول واحد يشارك سؤال أو تجربة.','Be the first to share a question or experience.','Comparte la primera pregunta o experiencia.')} onRetry={load}/>}
+ </Screen>;
+}

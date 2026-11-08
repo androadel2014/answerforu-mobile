@@ -1,0 +1,226 @@
+{
+  "reading_vocabulary": [
+    {
+      "title": "أشخاص",
+      "words": [
+        "Abraham Lincoln",
+        "George Washington"
+      ]
+    },
+    {
+      "title": "الحكومة والمدنيات",
+      "words": [
+        "American flag",
+        "Bill of Rights",
+        "capital",
+        "citizen",
+        "city",
+        "Congress",
+        "country",
+        "Father of Our Country",
+        "government",
+        "President",
+        "right",
+        "Senators",
+        "state/states",
+        "White House"
+      ]
+    },
+    {
+      "title": "أماكن",
+      "words": [
+        "America",
+        "United States",
+        "U.S."
+      ]
+    },
+    {
+      "title": "أعياد",
+      "words": [
+        "Presidents’ Day",
+        "Memorial Day",
+        "Flag Day",
+        "Independence Day",
+        "Labor Day",
+        "Columbus Day",
+        "Thanksgiving"
+      ]
+    },
+    {
+      "title": "أدوات الاستفهام",
+      "words": [
+        "How",
+        "What",
+        "When",
+        "Where",
+        "Who",
+        "Why"
+      ]
+    },
+    {
+      "title": "أفعال",
+      "words": [
+        "can",
+        "come",
+        "do/does",
+        "elects",
+        "have/has",
+        "is/are/was/be",
+        "lives/lived",
+        "meet",
+        "name",
+        "pay",
+        "vote",
+        "want"
+      ]
+    },
+    {
+      "title": "كلمات ربط",
+      "words": [
+        "a",
+        "for",
+        "here",
+        "in",
+        "of",
+        "on",
+        "the",
+        "to",
+        "we"
+      ]
+    },
+    {
+      "title": "كلمات عامة",
+      "words": [
+        "colors",
+        "dollar bill",
+        "first",
+        "largest",
+        "many",
+        "most",
+        "north",
+        "one",
+        "people",
+        "second",
+        "south"
+      ]
+    }
+  ],
+  "writing_vocabulary": [
+    {
+      "title": "أشخاص",
+      "words": [
+        "Adams",
+        "Lincoln",
+        "Washington"
+      ]
+    },
+    {
+      "title": "الحكومة والمدنيات",
+      "words": [
+        "American Indians",
+        "capital",
+        "citizens",
+        "Civil War",
+        "Congress",
+        "Father of Our Country",
+        "flag",
+        "free",
+        "freedom of speech",
+        "President",
+        "right",
+        "Senators",
+        "state/states",
+        "White House"
+      ]
+    },
+    {
+      "title": "أماكن",
+      "words": [
+        "Alaska",
+        "California",
+        "Canada",
+        "Delaware",
+        "Mexico",
+        "New York City",
+        "United States",
+        "Washington",
+        "Washington, D.C."
+      ]
+    },
+    {
+      "title": "أعياد",
+      "words": [
+        "Presidents’ Day",
+        "Memorial Day",
+        "Flag Day",
+        "Independence Day",
+        "Labor Day",
+        "Columbus Day",
+        "Thanksgiving"
+      ]
+    },
+    {
+      "title": "أفعال",
+      "words": [
+        "can",
+        "come",
+        "elect",
+        "have/has",
+        "is/was/be",
+        "lives/lived",
+        "meets",
+        "pay",
+        "vote",
+        "want"
+      ]
+    },
+    {
+      "title": "شهور",
+      "words": [
+        "February",
+        "May",
+        "June",
+        "July",
+        "September",
+        "October",
+        "November"
+      ]
+    },
+    {
+      "title": "كلمات ربط",
+      "words": [
+        "and",
+        "during",
+        "for",
+        "here",
+        "in",
+        "of",
+        "on",
+        "the",
+        "to",
+        "we"
+      ]
+    },
+    {
+      "title": "كلمات عامة",
+      "words": [
+        "blue",
+        "dollar bill",
+        "fifty/50",
+        "first",
+        "largest",
+        "most",
+        "north",
+        "one",
+        "one hundred/100",
+        "people",
+        "red",
+        "second",
+        "south",
+        "taxes",
+        "white"
+      ]
+    }
+  ],
+  "source": "https://www.uscis.gov/sites/default/files/document/flash-cards/M-638_red.pdf"
+}
