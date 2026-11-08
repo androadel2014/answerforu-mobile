@@ -98,7 +98,16 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew bundleRelease --stacktrace
+          # In-job retries reuse the runner's Gradle cache, so a transient
+          # 504/timeout on one artifact does not restart the whole build
+          # from zero (GitHub/Maven downloads were flaky on Nov 8, 2026).
+          for i in 1 2 3; do
+            if ./gradlew bundleRelease --stacktrace -Dorg.gradle.internal.http.socketTimeout=180000 -Dorg.gradle.internal.http.connectionTimeout=60000; then exit 0; fi
+            echo "bundleRelease attempt $i failed; retrying in 60s"
+            sleep 60
+          done
+          echo "bundleRelease failed after 3 attempts" >&2
+          exit 1
 
       - name: Verify AAB signature and print signer fingerprints
         run: |
