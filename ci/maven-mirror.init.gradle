@@ -9,8 +9,9 @@
 // artifacts directly. A 404 on the mirror still falls through to the
 // original repositories, so this only changes where bytes come from,
 // never which artifacts/versions are resolved.
+def mirrorUrl = 'https://maven-central.storage-download.googleapis.com/maven2'
+
 settingsEvaluated { settings ->
-    def mirrorUrl = 'https://maven-central.storage-download.googleapis.com/maven2'
     try {
         def pm = settings.pluginManagement.repositories
         def m1 = pm.maven { url mirrorUrl }
@@ -23,6 +24,28 @@ settingsEvaluated { settings ->
         def m2 = drm.maven { url mirrorUrl }
         drm.remove(m2)
         drm.add(0, m2)
+    } catch (Exception ignored) {
+    }
+}
+
+// The expo-gradle-plugin included build resolves its Kotlin compiler
+// classpath from PROJECT repositories declared in its own build files, so
+// the settings-level hooks above never see that resolution (it kept
+// downloading kotlin-compiler-embeddable from github.com via the Central
+// redirect). Init-script allprojects actions run before each project's
+// own build script, so the mirror lands first in project and buildscript
+// repository lists too.
+allprojects { project ->
+    try {
+        project.repositories {
+            maven { url mirrorUrl }
+        }
+    } catch (Exception ignored) {
+    }
+    try {
+        project.buildscript.repositories {
+            maven { url mirrorUrl }
+        }
     } catch (Exception ignored) {
     }
 }
