@@ -30,6 +30,17 @@ ui_has() {
   grep -q "$1" /tmp/dump.xml
 }
 
+dismiss_anr() {
+  # The emulator's System UI watchdog can throw a modal "System UI isn't
+  # responding" dialog over the app (run 3 sat behind it for the whole
+  # session). Tapping "Wait" is the safe dismissal; check before captures.
+  if ui_has "isn.t responding"; then
+    echo "ANR dialog present; tapping Wait"
+    tap_text "Wait" exact || true
+    sleep 3
+  fi
+}
+
 wait_for() {
   # $1 = text anchor, $2 = max seconds
   local t=0
@@ -55,7 +66,7 @@ tap_with_scroll() {
   return 1
 }
 
-snap() { adb exec-out screencap -p > "$OUT/$1"; }
+snap() { dismiss_anr; sleep 1; adb exec-out screencap -p > "$OUT/$1"; }
 
 adb wait-for-device
 # Portrait phone resolution for Play screenshots.
@@ -76,7 +87,9 @@ if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
   echo "pid after monkey: $(adb shell pidof "$PKG" || echo NONE)"
 fi
 sleep 8
+dismiss_anr
 snap debug-after-start-13s.png
+dismiss_anr
 
 # If a system permission dialog appears (e.g. notifications), decline politely.
 if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
@@ -86,7 +99,9 @@ if tap_text "Don't allow" contains; then echo "permission dialog dismissed (asci
 # language chip (a real in-app control that cycles ar -> en) so the capture
 # set is one consistent language.
 wait_for "الرئيسية" 60 || sleep 5
+dismiss_anr
 if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 4; fi
+dismiss_anr
 
 # 1) Home (guest view, live content).
 wait_for "Explore sections" 60 || true
