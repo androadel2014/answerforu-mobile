@@ -16,6 +16,16 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-24.04
+    env:
+      # Public identifier, NOT a secret: the Android OAuth client ID for
+      # com.answerforu.app in the site's Google Cloud project
+      # (banded-advice-482814-a8), created Nov 8, 2026 for this keystore's
+      # SHA-1. src/auth/GoogleButton.js reads it as
+      # process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID; Expo inlines
+      # EXPO_PUBLIC_* variables into the JS bundle at bundle time, so it
+      # must be present in the environment of the prebuild and
+      # bundleRelease steps — hence job-level env here.
+      EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: "816411262872-t2liqqc83b237ofgnhlunnnv0tujvhel.apps.googleusercontent.com"
     steps:
       - name: Check out
         uses: actions/checkout@v4
