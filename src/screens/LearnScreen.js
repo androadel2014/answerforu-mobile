@@ -1,21 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Linking, Pressable, StyleSheet, View } from "react-native";
 import { api } from "../api/client";
-import { AwareTextInput, Btn, Card, Empty, Loading, Pill, Screen, Txt } from "../components/UI";
+import { AwareTextInput, Btn, Card, Empty, Loading, Pill, Screen, SectionHero, SectionHeading, Txt } from "../components/UI";
 import { C } from "../theme";
 import { tr } from "../i18n";
 import {friendlyError} from "../logic/appSafety.mjs";
 
 // The PHP API is the single source of content; do not duplicate the lesson catalog in the APK.
 const LESSONS = [
-  ["guides", "◈", "دليل الحياة", "Life guides", "life_guides"],
-  ["currency", "$", "العملات", "Currency", "currency_items"],
-  ["signs", "△", "إشارات المرور", "Road signs", "road_signs"],
-  ["quiz", "?", "اختبر نفسك", "Practice quiz", "quiz_bank"],
-  ["stores", "▣", "المحلات", "Stores", "store_groups"],
-  ["services", "⚙", "الخدمات اليومية", "Daily services", "service_places"],
-  ["education", "✦", "التعليم", "Education", "education_cards"],
-  ["measure", "↔", "المقاسات", "Measurements", "conversions"],
+  ["guides", "◈", "دليل الحياة", "Life guides", "life_guides","Guías prácticas"],
+  ["currency", "$", "العملات", "Currency", "currency_items","Monedas"],
+  ["signs", "△", "إشارات المرور", "Road signs", "road_signs","Señales viales"],
+  ["quiz", "?", "اختبر نفسك", "Practice quiz", "quiz_bank","Cuestionario"],
+  ["stores", "▣", "المحلات", "Stores", "store_groups","Tiendas"],
+  ["services", "⚙", "الخدمات اليومية", "Daily services", "service_places","Servicios diarios"],
+  ["education", "✦", "التعليم", "Education", "education_cards","Educación"],
+  ["measure", "↔", "المقاسات", "Measurements", "conversions","Medidas"],
 ];
 const localized = (v, lang) => {
   if (v == null) return "";
@@ -90,11 +90,11 @@ export default function LearnScreen({ lang, navigate }) {
   },[data,current[4],query]);
   function select(key){setTab(key);setQuery("");setVisible(15);}
   return <Screen lang={lang}><Card style={{gap:9}}><Txt lang={lang} weight="900" style={{fontSize:17}}>{tr(lang,"تعلم واتدرب كمان","More learning and practice","Más aprendizaje y práctica")}</Txt><Btn lang={lang} title={tr(lang,"🇺🇸 الجنسية الأمريكية","🇺🇸 U.S. Citizenship","🇺🇸 Ciudadanía estadounidense")} onPress={()=>navigate("citizenship")} variant="blue"/><Btn lang={lang} title={tr(lang,"🗣 إنجليزي أول شهور","🗣 Survival English","🗣 Inglés de supervivencia")} onPress={()=>navigate("survival")} variant="light"/><Btn lang={lang} title={tr(lang,"⇩ حزم التعلم دون إنترنت","⇩ Offline packs","⇩ Paquetes sin conexión")} onPress={()=>navigate("offlinePacks")} variant="light"/></Card>
-    <Card dark style={{gap:9}}><Pill dark><Txt lang={lang} style={{color:C.cyan}} weight="900">AnswerForU · DB Learning</Txt></Pill><Txt lang={lang} style={{color:"#fff",fontSize:27}} weight="900">{tr(lang,"اتعلم الحياة في أمريكا","Learn life in America")}</Txt><Txt lang={lang} style={{color:"#cbd5e1",lineHeight:23}}>{tr(lang,"المحتوى والصور بييجوا مباشرة من نفس قاعدة بيانات الموقع، مش نسخة قديمة محفوظة في التطبيق.","Lessons and images are loaded from the same database as the website.")}</Txt></Card>
+    <SectionHero lang={lang} icon="✦" eyebrow={tr(lang,"خطوة صغيرة كل يوم","SMALL STEPS, BIG PROGRESS","APRENDE PASO A PASO")} title={tr(lang,"اتعلم الحياة في أمريكا","Learn life in America","Aprende sobre la vida en EE. UU.")} subtitle={tr(lang,"دروس وصور وتدريبات متجددة من الموقع.","Fresh lessons, visuals and activities from the website.","Lecciones, imágenes y actividades del sitio web.")}/><SectionHeading lang={lang} title={tr(lang,"اختار موضوعك","Choose your topic","Elige un tema")} caption={tr(lang,"اضغط على أي موضوع لعرض الدرس تحت","Select a topic to view its lessons","Elige un tema para ver sus lecciones")}/>
     {loading?<Loading lang={lang}/>:null}
     {error?<Card style={{gap:10}}><Txt lang={lang} style={{color:C.red}}>{error}</Txt><Btn lang={lang} title={tr(lang,"إعادة المحاولة","Retry")} onPress={load} variant="blue"/></Card>:null}
     {data?<>
-      <View style={styles.chips}>{LESSONS.map(([key,icon,ar,en,field])=><Pressable key={key} onPress={()=>select(key)} style={[styles.chip,tab===key&&styles.active]}><Txt lang={lang} style={{color:tab===key?"#fff":C.ink,fontSize:12}} weight="900">{icon} {tr(lang,ar,en)} ({(data[field]||[]).length})</Txt></Pressable>)}</View>
+      <View style={styles.chips}>{LESSONS.map(([key,icon,ar,en,field,es])=><Pressable key={key} onPress={()=>select(key)} style={[styles.chip,tab===key&&styles.active]}><Txt lang={lang} style={{color:tab===key?"#fff":C.ink,fontSize:12}} weight="900">{icon} {tr(lang,ar,en,es)} ({(data[field]||[]).length})</Txt></Pressable>)}</View>
       {tab!=="quiz"?<AwareTextInput value={query} onChangeText={v=>{setQuery(v);setVisible(15)}} placeholder={tr(lang,"ابحث في الدروس...","Search lessons...")} placeholderTextColor="#64748b" style={styles.search}/>:null}
       {tab==="quiz"?<QuizView bank={items} lang={lang}/>:null}
       {tab==="currency"?items.slice(0,visible).map((x,i)=><Currency key={x.id||i} item={x} lang={lang}/>):null}
@@ -110,7 +110,7 @@ export default function LearnScreen({ lang, navigate }) {
   </Screen>;
 }
 const styles=StyleSheet.create({
-  chips:{flexDirection:"row",flexWrap:"wrap",gap:7},chip:{backgroundColor:"#fff",borderWidth:1,borderColor:C.line,paddingHorizontal:11,paddingVertical:10,borderRadius:12},active:{backgroundColor:C.navy,borderColor:C.navy},
+  chips:{flexDirection:"row",flexWrap:"wrap",gap:9},chip:{width:"48%",minHeight:85,justifyContent:"center",backgroundColor:"#fff",borderWidth:1,borderColor:C.line,paddingHorizontal:14,paddingVertical:12,borderRadius:19},active:{backgroundColor:C.teal,borderColor:C.teal},
   search:{minHeight:48,borderRadius:14,borderWidth:1,borderColor:C.line,backgroundColor:"#fff",paddingHorizontal:14,color:C.ink,fontSize:16},
   image:{height:190,width:"100%",backgroundColor:"#f8fafc",borderRadius:12},
   option:{borderWidth:1,borderColor:C.line,backgroundColor:"#fff",padding:14,borderRadius:12},selected:{backgroundColor:C.blue,borderColor:C.blue},correct:{borderColor:C.green},subcard:{gap:5,padding:11,borderRadius:12,backgroundColor:"#f8fafc",borderWidth:1,borderColor:C.line}

@@ -32,9 +32,9 @@ test('version is from a single mobile constant, aligned with package and Expo ap
  const conf=fs.readFileSync(new URL('../src/config.js',import.meta.url),'utf8');
  const app=JSON.parse(fs.readFileSync(new URL('../app.json',import.meta.url)));
  const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url)));
- assert.match(conf,/APP_VERSION\s*=\s*["']3\.6\.1["']/);
- for(const version of [app.expo.version,pkg.version,app.expo.extra.cleanMobileVersion])assert.equal(version,'3.6.1');
- assert.equal(app.expo.extra.webMasterVersion,'6.3.7');assert.equal(app.expo.android.versionCode,15);
+ assert.match(conf,/APP_VERSION\s*=\s*["']3\.7\.0["']/);
+ for(const version of [app.expo.version,pkg.version,app.expo.extra.cleanMobileVersion])assert.equal(version,'3.7.0');
+ assert.equal(app.expo.extra.webMasterVersion,'6.3.9');assert.equal(app.expo.android.versionCode,16);
  assert.equal(app.expo.android.package,'com.answerforu.app');
  assert.equal(app.expo.extra.apiBaseUrl,'https://answerforu.com');
  for(const file of ['src/components/AppHeader.js','src/screens/AllSectionsScreen.js','src/screens/AuthScreen.js'])

@@ -1,7 +1,7 @@
 import React,{useState} from "react";
 import { View,StyleSheet } from "react-native";
 import { api } from "../api/client";
-import { Btn,Card,Field,Screen,Txt } from "../components/UI";
+import { Btn,Card,Field,Screen,SectionHero,Txt } from "../components/UI";
 import GoogleButton from "../auth/GoogleButton";
 import { C } from "../theme";
 import { APP_VERSION } from "../config";
@@ -18,7 +18,7 @@ export default function AuthScreen({lang,onAuth,onLang,onBrowse}){
     }catch(e){setError(friendlyError(e,lang))}finally{setBusy(false)}
   }
   return <Screen lang={lang} contentStyle={st.page}>
-    <View style={{gap:5,marginBottom:5}}><Txt lang={lang} style={st.brand} weight="900">AnswerForU</Txt><Txt lang={lang} style={st.version}>{T('حياتك في أمريكا بسهولة','Your U.S. life made simple','Tu vida en EE. UU. más fácil')} · v{APP_VERSION}</Txt></View>
+    <SectionHero compact lang={lang} icon="A" eyebrow={`AnswerForU · v${APP_VERSION}`} title={T('حياتك في أمريكا بسهولة','Your U.S. life made simple','Tu vida en EE. UU. más fácil')} subtitle={T('كل خطواتك في مكان واحد','Everything you need in one place','Todo lo que necesitas en un lugar')}/>
     <View style={st.hello}><Txt lang={lang} weight="900" style={{fontSize:28}}>{mode==='register'?T('اعمل حسابك','Create an account','Crea tu cuenta'):mode==='forgot'?T('نرجّع حسابك','Recover your account','Recupera tu cuenta'):T('أهلًا بيك!','Welcome!','¡Bienvenido!')}</Txt><Txt lang={lang} style={{color:C.muted}}>{T('ابدأ بسهولة، واختار اللي يناسبك.','Choose the easiest way to get started.','Elige cómo quieres empezar.')}</Txt></View>
     <Card style={{gap:13}}>
       {mode!=='forgot'?<GoogleButton lang={lang} onAuth={onAuth} onBusy={setBusy} onMessage={setError}/>:null}
@@ -37,4 +37,4 @@ export default function AuthScreen({lang,onAuth,onLang,onBrowse}){
     <Btn lang={lang} title={T(`اللغة: ${lang.toUpperCase()} — تغيير`,`Language: ${lang.toUpperCase()} — Change`,`Idioma: ${lang.toUpperCase()} — Cambiar`)} onPress={onLang} variant="ghost"/>
   </Screen>;
 }
-const st=StyleSheet.create({page:{paddingTop:18,gap:12,paddingBottom:28},brand:{fontSize:29,color:C.navy},version:{color:C.muted},hello:{gap:8,paddingVertical:6},error:{padding:12,backgroundColor:C.dangerBg,borderRadius:14},success:{padding:12,backgroundColor:C.successBg,borderRadius:14}});
+const st=StyleSheet.create({page:{paddingTop:16,gap:14,paddingBottom:32,width:"100%",maxWidth:490,alignSelf:"center"},brand:{fontSize:29,color:C.navy},version:{color:C.muted},hello:{gap:8,paddingTop:10,paddingBottom:5},error:{padding:12,backgroundColor:C.dangerBg,borderRadius:14},success:{padding:12,backgroundColor:C.successBg,borderRadius:14}});

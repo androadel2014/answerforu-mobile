@@ -1,4 +1,4 @@
-import React, { createContext, forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef } from "react";
+import React, { createContext, forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { C, radius, shadow, spacing, type } from "../theme";
 import { isRTL } from "../i18n";
@@ -88,7 +88,7 @@ export const AwareTextInput = forwardRef(function AwareTextInput({ onFocus, ...p
 export function Screen({ children, lang = "ar", scroll = true, refreshing = false, onRefresh, contentStyle }) {
   const rtl = isRTL(lang);
   const body = scroll ? (
-    <KeyboardAwareScrollView contentContainerStyle={[s.content, { paddingBottom: 42 }, contentStyle]}>
+    <KeyboardAwareScrollView contentContainerStyle={[s.content, { paddingBottom: 46 }, contentStyle]}>
       {children}
     </KeyboardAwareScrollView>
   ) : <View style={[s.flex, contentStyle]}>{children}</View>;
@@ -118,9 +118,9 @@ export function Btn({ title, onPress, variant = "dark", disabled = false, style,
   const variants = {
     dark: { backgroundColor: C.navy, borderColor: C.navy },
     light: { backgroundColor: "#fff", borderColor: C.line },
-    blue: { backgroundColor: C.blue, borderColor: C.blue },
+    blue: { backgroundColor: C.teal, borderColor: C.teal },
     danger: { backgroundColor: "#fff1f2", borderColor: "#fecdd3" },
-    ghost: { backgroundColor: "transparent", borderColor: C.line }
+    ghost: { backgroundColor: "transparent", borderColor: "transparent" }
   };
   const textColor = variant === "dark" || variant === "blue" ? "#fff" : variant === "danger" ? C.red : C.ink;
   return (
@@ -131,11 +131,14 @@ export function Btn({ title, onPress, variant = "dark", disabled = false, style,
 }
 
 export function Field({ label, value, onChangeText, placeholder, secureTextEntry, keyboardType, multiline = false, lang = "ar", autoCapitalize = "none", ...props }) {
-  return <View style={{ gap: 7 }}>
+  const [focused,setFocused] = useState(false);
+  return <View style={{ gap: 8 }}>
     {label ? <Txt lang={lang} style={{ fontSize: 16, color: C.muted }} weight="800">{label}</Txt> : null}
     <AwareTextInput
       value={value}
       onChangeText={onChangeText}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       placeholder={placeholder}
       placeholderTextColor="#94a3b8"
       secureTextEntry={secureTextEntry}
@@ -143,7 +146,7 @@ export function Field({ label, value, onChangeText, placeholder, secureTextEntry
       multiline={multiline}
       autoCapitalize={autoCapitalize}
       textAlign={isRTL(lang) ? "right" : "left"}
-      style={[s.input, multiline && { minHeight: 104, textAlignVertical: "top" }]}
+      style={[s.input, focused && s.inputFocus, multiline && { minHeight: 104, textAlignVertical: "top" }]}
       returnKeyType={multiline ? "default" : "next"}
       {...props}
     />
@@ -155,17 +158,54 @@ export function Loading({ lang = "ar", label }) {
 }
 
 export function Empty({ lang = "ar", title, body, onRetry }) {
-  return <Card style={{ alignItems: "center", paddingVertical: 30 }}><Txt lang={lang} weight="900" style={{ fontSize: 17, textAlign: "center" }}>{title}</Txt>{body ? <Txt lang={lang} style={{ color: C.muted, marginTop: 8, textAlign: "center", lineHeight: 24 }}>{body}</Txt> : null}{onRetry ? <Btn lang={lang} title={lang === "ar" ? "جرّب تاني" : lang === "es" ? "Reintentar" : "Try again"} onPress={onRetry} variant="blue" /> : null}</Card>;
+  return <Card style={{ alignItems: "center", paddingVertical: 32, gap: 9 }}><View style={s.emptyArt}><Txt style={{fontSize:30,color:C.teal}}>✧</Txt></View><Txt lang={lang} weight="900" style={{ fontSize: 17, textAlign: "center" }}>{title}</Txt>{body ? <Txt lang={lang} style={{ color: C.muted, marginTop: 8, textAlign: "center", lineHeight: 24 }}>{body}</Txt> : null}{onRetry ? <Btn lang={lang} title={lang === "ar" ? "جرّب تاني" : lang === "es" ? "Reintentar" : "Try again"} onPress={onRetry} variant="blue" /> : null}</Card>;
 }
 
 export const s = StyleSheet.create({
   flex: { flex: 1 },
-  content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 32 },
+  content: { paddingHorizontal: 18, paddingTop: 18, gap: 16, paddingBottom: 40 },
   text: { color: C.ink, fontSize: 16, lineHeight: 24 },
-  card: { backgroundColor: C.card, borderWidth: 1, borderColor: C.line, borderRadius: radius.lg, padding: 16, gap: 8, ...shadow },
-  cardDark: { backgroundColor: C.navy, borderColor: C.navy },
-  pill: { alignSelf: "flex-start", borderWidth: 1, borderColor: C.line, backgroundColor: C.soft, borderRadius: 999, paddingHorizontal: 11, paddingVertical: 6 },
-  btn: { minHeight: 52, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: 16, alignItems: "center", justifyContent: "center" },
-  input: { width: "100%", minHeight: 54, borderWidth: 1, borderColor: "#A8BBD0", borderRadius: radius.md, backgroundColor: "#fff", paddingHorizontal: 14, color: C.ink, fontSize: 16 },
+  card: { backgroundColor: C.card, borderWidth: 1, borderColor: C.line, borderRadius: radius.lg, padding: 19, gap: 11, ...shadow },
+  cardDark: { backgroundColor: C.navy, borderColor: C.navy2 },
+  pill: { alignSelf: "flex-start", borderWidth: 1, borderColor: "#CDE9E3", backgroundColor: C.soft, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7 },
+  btn: { minHeight: 50, borderWidth: 1, borderRadius: 16, paddingHorizontal: 18, alignItems: "center", justifyContent: "center" },
+  input: { width: "100%", minHeight: 54, borderWidth: 1.2, borderColor: "#BDD5D3", borderRadius: 16, backgroundColor: "#F9FCFC", paddingHorizontal: 16, color: C.ink, fontSize: 16 },
+  inputFocus: { backgroundColor: C.white, borderColor: C.teal, borderWidth: 2 },
+  emptyArt: {width:68,height:68,borderRadius:24,backgroundColor:C.mist,alignItems:"center",justifyContent:"center",marginBottom:5},
   center: { paddingVertical: 40, alignItems: "center", justifyContent: "center" }
+});
+
+// Reusable editorial hero. Intentionally built with native Views (no new native
+// dependencies, permissions, images or network calls).
+export function SectionHero({lang="ar",eyebrow,title,subtitle,icon="✦",children,style,compact=false}) {
+  return <View style={[heroStyles.shell,compact&&heroStyles.compact,style]}>
+    <View pointerEvents="none" style={heroStyles.orbA}/><View pointerEvents="none" style={heroStyles.orbB}/>
+    <View style={heroStyles.eyebrowRow}>
+      <View style={heroStyles.badge}><Txt style={{color:C.sea,fontSize:14}} weight="900">{icon}</Txt></View>
+      {eyebrow?<Txt lang={lang} style={{color:C.sea,fontSize:14,flexShrink:1}} weight="800">{eyebrow}</Txt>:null}
+    </View>
+    <Txt lang={lang} style={{color:"#FFFFFF",fontSize:compact?25:30,lineHeight:compact?36:43}} weight="900">{title}</Txt>
+    {subtitle?<Txt lang={lang} style={{color:"#D0E8E8",lineHeight:25,fontSize:16}} weight="500">{subtitle}</Txt>:null}
+    {children}
+    <View style={heroStyles.underline}/>
+  </View>;
+}
+export function SectionHeading({lang="ar",title,caption,action}) {
+  return <View style={{gap:5,marginTop:3,marginBottom:2}}>
+    <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
+      <View style={{width:5,height:25,borderRadius:9,backgroundColor:C.teal}}/>
+      <Txt lang={lang} style={{fontSize:22,color:C.ink,flex:1}} weight="900">{title}</Txt>
+      {action||null}
+    </View>
+    {caption?<Txt lang={lang} style={{color:C.muted,marginHorizontal:14}}>{caption}</Txt>:null}
+  </View>;
+}
+const heroStyles=StyleSheet.create({
+  shell:{position:"relative",overflow:"hidden",borderRadius:28,backgroundColor:C.navy,padding:24,gap:12,minHeight:177},
+  compact:{padding:20,minHeight:150,gap:9},
+  orbA:{position:"absolute",width:190,height:190,borderRadius:95,top:-105,right:-58,backgroundColor:"#146476",opacity:.65},
+  orbB:{position:"absolute",width:120,height:120,borderRadius:60,bottom:-81,left:-32,backgroundColor:C.teal,opacity:.28},
+  eyebrowRow:{flexDirection:"row",alignItems:"center",gap:9},
+  badge:{width:33,height:33,borderRadius:12,backgroundColor:"#17596A",alignItems:"center",justifyContent:"center",borderWidth:1,borderColor:"#337C83"},
+  underline:{width:55,height:4,borderRadius:99,backgroundColor:C.sea,marginTop:4}
 });

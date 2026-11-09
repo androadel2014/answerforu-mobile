@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useState}from 'react';
 import {Image,Linking,Pressable,Share,View} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {api,rows} from '../api/client';
-import {Btn,Card,Empty,Field,Loading,Screen,Txt} from '../components/UI';
+import {Btn,Card,Empty,Field,Loading,Screen,SectionHero,SectionHeading,Txt} from '../components/UI';
 import {C} from '../theme';
 import {tr} from '../i18n';
 import {friendlyError} from '../logic/appSafety.mjs';
@@ -26,7 +26,7 @@ export default function CVScreen({lang,user}){
  function removeCv(cv){confirmAction({title:T(lang,'حذف السيرة الذاتية؟','Delete this CV?','¿Eliminar el CV?'),message:cv.cv_name||'',cancelLabel:T(lang,'إلغاء','Cancel','Cancelar'),confirmLabel:T(lang,'حذف','Delete','Eliminar'),onConfirm:async()=>{try{await api.deleteCv(cv.id);await load()}catch(e){setError(friendlyError(e,lang))}}})}
  function importCv(){try{setData(parseImportedCv(jsonText));setTab('edit');setError('')}catch(e){setError(T(lang,'ملف السيرة غير صالح أو كبير جدًا','The CV JSON is invalid or too large','El JSON no es válido o es demasiado grande'))}}
  const formatted=previewCv(data);
- return <Screen lang={lang}><Card dark style={{gap:7}}><Txt lang={lang} style={{fontSize:26,color:'#fff'}} weight="900">{T(lang,'السيرة الذاتية الأمريكية','U.S. Resume Builder','Creador de currículum')}</Txt><Txt lang={lang} style={{color:'#d1e8f3',lineHeight:24}}>{T(lang,'نفس حقول ومعلومات مصمم الموقع — والسير محفوظة في حسابك.','The website CV builder data model and your saved account documents.','El mismo modelo del sitio y tus documentos guardados.')}</Txt></Card>
+ return <Screen lang={lang}><SectionHero lang={lang} icon="▤" eyebrow={T(lang,"استعد لشغلك الجاي","YOUR NEXT OPPORTUNITY","TU PRÓXIMA OPORTUNIDAD")} title={T(lang,'السيرة الذاتية الأمريكية','U.S. Resume Builder','Creador de currículum')} subtitle={T(lang,'نفس حقول ومعلومات مصمم الموقع — والسير محفوظة في حسابك.','Build and manage resumes saved to your website account.','Crea y gestiona currículos guardados en tu cuenta.')}/>
  {error?<Card><Txt lang={lang} style={{color:C.red}}>{error}</Txt></Card>:null}
  {tab==='list'?<><Btn lang={lang} title={T(lang,'＋ سيرة جديدة','＋ New resume','＋ Nuevo CV')} variant="blue" onPress={()=>begin(null)}/>{loading?<Loading lang={lang}/>:cvs.length?cvs.map((cv,i)=><Card key={cv.id||i} style={{gap:8}}><Txt lang={lang} style={{fontSize:18}} weight="900">{cv.cv_name||cv.name||`Resume ${i+1}`}</Txt><Txt lang={lang}>{normalizeCv(cv).personalInfo.fullName}</Txt><Btn lang={lang} title={T(lang,'تحرير جميع الأقسام','Edit all sections','Editar todas las secciones')} onPress={()=>begin(cv)} variant="blue"/><Btn lang={lang} title={T(lang,'مشاركة','Share','Compartir')} onPress={()=>Share.share({title:cv.cv_name||'Resume',message:previewCv(cv)})} variant="light"/><Btn lang={lang} title={T(lang,'حذف','Delete','Eliminar')} onPress={()=>removeCv(cv)} variant="danger"/></Card>):<Empty lang={lang} title={T(lang,'مفيش سير محفوظة','No saved resumes','No hay currículos guardados')}/>}</>:<>
  <View style={{flexDirection:'row',gap:8,flexWrap:'wrap'}}>{[['edit','تعديل','Edit','Editar'],['preview','معاينة','Preview','Vista previa'],['import','استيراد','Import JSON','Importar JSON']].map(([key,ar,en,es])=><View key={key} style={{flex:1,minWidth:90}}><Btn lang={lang} title={T(lang,ar,en,es)} variant={tab===key?'blue':'light'} onPress={()=>setTab(key)}/></View>)}</View>

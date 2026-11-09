@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Pressable,ScrollView,View} from 'react-native';
 import {api} from '../api/client';
-import {AwareTextInput,Btn,Card,Pill,Screen,Txt} from '../components/UI';
+import {AwareTextInput,Btn,Card,Pill,Screen,SectionHero,SectionHeading,Txt} from '../components/UI';
 import {tr} from '../i18n';
 import {C} from '../theme';
 import {useOfflinePack} from '../services/offline';
@@ -26,7 +26,7 @@ export default function SurvivalEnglishScreen({lang,user,params,navigate}){
  const masteredHere=phrases.filter(x=>(!pack||String(x.pack)===String(pack))&&mastered.includes(x.id)).length;
  const choices=useMemo(()=>{if(!current)return[];const others=phrases.filter(x=>x.id!==current.id&&x.meaning_ar!==current.meaning_ar).slice(0,6).map(x=>x.meaning_ar);return [current.meaning_ar,...others.slice(index%Math.max(others.length,1),index%Math.max(others.length,1)+3)].slice(0,4).sort((a,b)=>((a.length+index)%7)-((b.length+index)%7));},[current?.id,index,phrases]);
  return <Screen lang={lang}>
- <Card dark style={{gap:7}}><Txt lang={lang} weight="900" style={{color:'#fff',fontSize:24}}>{T(lang,'إنجليزي أول شهور','Survival English','Inglés para los primeros meses')}</Txt><Txt lang={lang} style={{color:'#cbd5e1'}}>{phrases.length} {T(lang,'عبارة · 17 باكت · متاحة بدون إنترنت','phrases · 17 packs · available offline','frases · 17 grupos · sin conexión')}</Txt><Txt lang={lang} style={{color:'#fff'}}>{T(lang,'اتقنت','Mastered','Dominadas')}: {mastered.length} / {phrases.length}</Txt></Card>
+ <SectionHero lang={lang} icon="✦" eyebrow={T(lang,"تدرب على الكلام اليومي","EVERYDAY ENGLISH","INGLÉS COTIDIANO")} title={T(lang,'إنجليزي أول شهور','Survival English','Inglés para los primeros meses')} subtitle={`${phrases.length} ${T(lang,'عبارة · 17 مجموعة · من بيانات الموقع','phrases · 17 packs · from the website','frases · 17 grupos · del sitio web')}`} compact><View style={{flexDirection:"row",gap:9,alignItems:"center"}}><View style={{backgroundColor:"#216271",borderRadius:13,paddingHorizontal:13,paddingVertical:8}}><Txt lang={lang} style={{color:C.sea}} weight="900">✓ {T(lang,'اتقنت','Mastered','Dominadas')}: {mastered.length} / {phrases.length}</Txt></View></View></SectionHero><SectionHeading lang={lang} title={T(lang,"اختار موقف واتدرب","Choose a situation","Elige una situación")}/>
  {error?<Txt lang={lang} style={{color:C.muted,fontSize:10}}>{T(lang,'أنت تستخدم المحتوى المحفوظ','Using saved offline content','Usando contenido guardado')}</Txt>:null}
  <AwareTextInput value={q} onChangeText={setQ} placeholder={T(lang,'ابحث بالإنجليزي أو النطق أو المعنى','Search English, pronunciation or meaning','Buscar inglés, pronunciación o significado')} style={{backgroundColor:'#fff',borderWidth:1,borderColor:C.line,borderRadius:15,padding:13,minHeight:49,textAlign:lang==='ar'?'right':'left'}}/>
  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{gap:6}}><Btn lang={lang} title={T(lang,'كل المواقف','All packs','Todos')} variant={!pack?'dark':'light'} onPress={()=>choosePack('')}/>{packs.map(p=><Btn key={p.id} lang={lang} title={`${p.icon||''} ${p[lang]||p.en}`} variant={pack===p.id?'dark':'light'} onPress={()=>choosePack(p.id)}/>)}</ScrollView>

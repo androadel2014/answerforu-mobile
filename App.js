@@ -4,7 +4,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "./src/components/AppHeader";
 import BottomNav from "./src/components/BottomNav";
 import { api } from "./src/api/client";
-import { clearSession, getLang, getToken, getUser, setLangStored, setToken, setUser as storeUser } from "./src/auth/storage";
+import { clearSession, getLang, getIntroDone, setIntroDone, getToken, getUser, setLangStored, setToken, setUser as storeUser } from "./src/auth/storage";
 import { C } from "./src/theme";
 import { Btn, Txt } from "./src/components/UI";
 import { tr } from "./src/i18n";
@@ -35,6 +35,7 @@ import CitizenshipScreen from "./src/screens/CitizenshipScreen";
 import SurvivalEnglishScreen from "./src/screens/SurvivalEnglishScreen";
 import OfflinePacksScreen from "./src/screens/OfflinePacksScreen";
 import ScreenErrorBoundary from "./src/components/ScreenErrorBoundary";
+import WelcomeTour from "./src/components/WelcomeTour";
 import PublishedLibraryScreen from "./src/screens/PublishedLibraryScreen";
 
 const MAIN = new Set(["home","journey","learn","community","all"]);
@@ -44,6 +45,7 @@ function Root() {
   const [ready,setReady]=useState(false), [token,setTokenState]=useState(""), [user,setUser]=useState(null), [lang,setLang]=useState("ar");
   const [route,setRoute]=useState({name:"home",params:null}), [history,setHistory]=useState([]), [keyboardOpen,setKeyboardOpen]=useState(false);
   const [afterLogin, setAfterLogin] = useState(null);
+  const [showTour,setShowTour]=useState(false);
   const [screenRetry,setScreenRetry] = useState(0);
   const [bootError,setBootError]=useState(""); const [bootAttempt,setBootAttempt]=useState(0);
 
@@ -54,12 +56,13 @@ function Root() {
       const results=await Promise.allSettled([
         withTimeout(getToken(),STARTUP_TIMEOUT_MS,""),
         withTimeout(getUser(),STARTUP_TIMEOUT_MS,null),
-        withTimeout(getLang(),STARTUP_TIMEOUT_MS,"ar")
+        withTimeout(getLang(),STARTUP_TIMEOUT_MS,"ar"),
+        withTimeout(getIntroDone(),STARTUP_TIMEOUT_MS,true)
       ]);
       if(!alive)return;
       const val=(i,defaultValue)=>results[i]?.status==="fulfilled"?results[i].value:defaultValue;
       const t=val(0,""), u=val(1,null), l=val(2,"ar");
-      setLang(l||"ar");setTokenState(t||"");setUser(u||null);
+      setLang(l||"ar");setTokenState(t||"");setUser(u||null);setShowTour(!val(3,true));
       if(results.some(x=>x.status==='rejected'))setBootError("storage");
       setReady(true); // Do not block first meaningful paint on an API request.
       if(t){try{
@@ -91,6 +94,7 @@ function Root() {
   async function updateUser(u){setUser(u);await storeUser(u);}
 
   if(!ready)return <View style={st.splash}><StatusBar barStyle="dark-content"/><View style={st.mark}/><ActivityIndicator size="large" color={C.blue}/><Txt lang={lang} style={{marginTop:16,color:C.ink,textAlign:"center"}}>{tr(lang,"جاري التحميل…","Loading…","Cargando…")}</Txt></View>;
+  if(showTour)return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}><StatusBar barStyle="dark-content"/><WelcomeTour lang={lang} onDone={()=>{setShowTour(false);setIntroDone().catch(()=>{})}}/></SafeAreaView>;
   if(route.name==="auth")return <SafeAreaView style={st.safe}><StatusBar barStyle="dark-content"/><AuthScreen lang={lang} onAuth={onAuth} onLang={cycleLang} onBrowse={()=>{setAfterLogin(null);setRoute({name:"home",params:null})}}/></SafeAreaView>;
 
   const common={lang,user,navigate,params:route.params,back,onLogout:logout,onUser:updateUser};
