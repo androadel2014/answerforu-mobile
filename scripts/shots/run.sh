@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# One-off Play Store screenshot capture for AnswerForU (com.answerforu.app).
+# AnswerForU v3.7.0 GATE walk — full-section screenshot capture.
 # Runs on the CI host with adb connected to a booted emulator.
 # Captures the REAL app UI via screencap, running the production release APK
 # against the LIVE backend (https://answerforu.com) as a guest. No account
-# is created, nothing is posted or saved. All navigation uses the app's own
-# on-screen controls (bottom nav, section buttons, tiles) — deliberately NO
-# hardware-back: with predictive back enabled, an injected keyevent 4
-# finished the activity in run 2 and backgrounded the app.
+# is created, nothing is posted or saved server-side. All navigation uses
+# the app's own on-screen controls (bottom nav, tiles, buttons) — NO
+# hardware back: with predictive back enabled, an injected keyevent 4
+# finishes the activity and backgrounds the app.
 set -x
 PKG="com.answerforu.app"
 OUT="screenshots"
@@ -31,9 +31,6 @@ ui_has() {
 }
 
 dismiss_anr() {
-  # The emulator's System UI watchdog can throw a modal "System UI isn't
-  # responding" dialog over the app (run 3 sat behind it for the whole
-  # session). Tapping "Wait" is the safe dismissal; check before captures.
   if ui_has "isn.t responding"; then
     echo "ANR dialog present; tapping Wait"
     tap_text "Wait" exact || true
@@ -53,9 +50,7 @@ wait_for() {
 }
 
 tap_with_scroll() {
-  # $1 = text, $2 = mode, $3 = max attempts. Scrolls the current screen
-  # between attempts for targets that live below the fold (off-screen
-  # ScrollView children are absent from the uiautomator hierarchy).
+  # $1 = text, $2 = mode, $3 = max attempts (scrolls between attempts)
   local i=1
   while [ $i -le "$3" ]; do
     if tap_text "$1" "$2"; then echo "tapped '$1' on attempt $i"; return 0; fi
@@ -66,19 +61,25 @@ tap_with_scroll() {
   return 1
 }
 
-snap() { dismiss_anr; sleep 1; adb exec-out screencap -p > "$OUT/$1"; }
+snap() { dismiss_anr; sleep 1; adb exec-out screencap -p > "$OUT/$1"; echo "saved $1"; }
+
+decline_perm() {
+  if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
+  if tap_text "Don't allow" contains; then echo "permission dialog dismissed (ascii)"; sleep 1; fi
+}
+
+goto_more() { tap_text "More" exact || true; sleep 3; }
 
 adb wait-for-device
-# Portrait phone resolution for Play screenshots.
 adb shell wm size 1080x1920 || true
 sleep 2
 
 adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell pm clear "$PKG" || true
 adb logcat -c || true
-adb shell am start -W -n "$PKG/.MainActivity" || true
-sleep 5
-snap debug-after-start-5s.png
+
+# --- Cold start measurement (true first run, data cleared) ---
+adb shell am start -W -n "$PKG/.MainActivity" | tee "$OUT/debug-coldstart.txt" || true
 echo "pid after am start: $(adb shell pidof "$PKG" || echo NONE)"
 if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
   echo "no app process after am start; trying monkey launcher"
@@ -88,86 +89,174 @@ if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
 fi
 sleep 8
 dismiss_anr
-snap debug-after-start-13s.png
-dismiss_anr
+decline_perm
 
-# If a system permission dialog appears (e.g. notifications), decline politely.
-if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
-if tap_text "Don't allow" contains; then echo "permission dialog dismissed (ascii)"; sleep 1; fi
+# --- First-run onboarding (v3.7.0 WelcomeTour, Arabic default) ---
+wait_for "تخطي" 90 || sleep 5
+snap 00-onboarding-1.png
+if tap_text "التالي" exact; then echo "tour next 1"; sleep 3; fi
+snap 00-onboarding-2.png
+if tap_text "التالي" exact; then echo "tour next 2"; sleep 3; fi
+snap 00-onboarding-3.png
+if tap_text "ابدأ الاستكشاف" contains; then echo "tour finished via Start exploring"; sleep 4; fi
+decline_perm
 
-# The app starts in Arabic (its default). Switch to English with the header
-# language chip (a real in-app control that cycles ar -> en) so the capture
-# set is one consistent language.
-wait_for "الرئيسية" 60 || sleep 5
-dismiss_anr
-if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 4; fi
-dismiss_anr
-
-# 1) Home (guest view, live content).
-wait_for "Explore sections" 60 || true
+# --- Home in Arabic (default state) ---
+wait_for "الرئيسية" 60 || sleep 3
 sleep 3
 snap 01-home.png
 
-# 2) Journey. (In v3.6.0 the guest Journey currently lands on the app's own
-# error boundary — ReferenceError: Btn in JourneyScreen, logcat run 2 — so
-# try once, tap the boundary's own Retry once, then capture what is real.)
-tap_text "Journey" exact || true
-if ! wait_for "Choose a stage" 45; then
-  if ui_has "Could not open this section"; then
-    echo "journey error boundary shown; tapping its Retry"
-    tap_text "Retry" exact || true
-    wait_for "Choose a stage" 45 || true
-  fi
-fi
+# Switch to English with the header language chip (cycles ar -> en).
+if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 4; fi
+dismiss_anr
+wait_for "Explore sections" 45 || wait_for "Everything you need" 30 || true
 sleep 2
-snap 02-journey.png
+snap 02-home-en.png
 
-# 3) Marketplace (community places load from the live API). Anchor avoids
-# the raw "&" (uiautomator XML escapes it as &amp;).
+# --- Journey (bottom tab) ---
+tap_text "Journey" exact || true
+wait_for "Choose a stage" 60 || true
+sleep 2
+snap 03-journey.png
+
+# --- Marketplace (bottom tab; community places load from live API) ---
 tap_text "Marketplace" exact || true
-wait_for "Marketplace" 60 || true
+wait_for "Explore places" 60 || true
 sleep 6
-# Gentle scroll so the first place card is fully in frame.
 adb shell input swipe 540 1400 540 950 300 || true
 sleep 4
-snap 03-marketplace.png
+snap 04-marketplace.png
 
-# 4) Learn hub -> U.S. Citizenship.
+# --- Learn hub (bottom tab) ---
 tap_text "Learn" exact || true
-sleep 3
-tap_with_scroll "U.S. Citizenship" contains 3 || true
-wait_for "Your path to U.S. citizenship" 60 || true
-sleep 3
-snap 04-citizenship.png
+wait_for "Learn life in America" 60 || true
+sleep 2
+snap 05-learn.png
 
-# 5) Survival English: return via the Learn bottom-nav tab (no hardware
-# back), then the Survival English button (scroll-assisted if needed).
+# --- Citizenship (from Learn hub) ---
+tap_with_scroll "U.S. Citizenship" contains 3 || true
+wait_for "Choose a study area" 60 || wait_for "CITIZENSHIP GUIDE" 20 || true
+sleep 3
+snap 06-citizenship.png
+
+# --- Survival English (back via Learn tab) ---
 tap_text "Learn" exact || true
 sleep 3
 tap_with_scroll "Survival English" contains 3 || true
-wait_for "Passport, please" 60 || true
+wait_for "EVERYDAY ENGLISH" 60 || wait_for "Choose a situation" 20 || true
 sleep 2
-snap 05-survival-english.png
+snap 07-survival-english.png
 
-# 6) Feed: via the More tab's Feed tile, scroll-assisted; fallback = the
-# Marketplace screen's own "Open community feed" button.
-tap_text "More" exact || true
+# --- Offline packs (back via Learn tab) ---
+tap_text "Learn" exact || true
 sleep 3
-if tap_with_scroll "Feed" exact 4; then
-  echo "feed opened via More tab"
-else
-  echo "More/Feed tap failed; trying Marketplace fallback"
-  tap_text "Marketplace" exact || true
-  sleep 4
-  for i in $(seq 1 20); do
-    if ui_has "Open community feed"; then break; fi
-    adb shell input swipe 540 1500 540 500 300 || true
-    sleep 1
-  done
-  tap_text "Open community feed" contains || true
-fi
+tap_with_scroll "Offline packs" contains 3 || true
+sleep 5
+snap 08-offline-packs.png
+
+# --- All sections / More tab ---
+goto_more
+wait_for "DISCOVER ANSWERFORU" 45 || true
+sleep 2
+snap 09-all-sections.png
+adb shell input swipe 540 1400 540 700 300 || true
+sleep 2
+snap 10-all-sections-scrolled.png
+
+# --- CV Builder (More tile) ---
+goto_more
+tap_with_scroll "CV Builder" contains 3 || true
+wait_for "YOUR NEXT OPPORTUNITY" 45 || true
+sleep 3
+snap 11-cv-builder.png
+
+# --- Feed (More tile) ---
+goto_more
+tap_with_scroll "Feed" exact 4 || true
+wait_for "CONNECT & SHARE" 45 || true
+sleep 5
+snap 12-feed.png
+
+# --- Messages (More tile; may gate to auth as guest — capture as-is) ---
+goto_more
+tap_with_scroll "Messages" exact 4 || true
+sleep 6
+snap 13-messages.png
+
+# --- My Account / Profile (More tile; as guest may show Auth — capture as-is) ---
+goto_more
+tap_with_scroll "My Account" contains 4 || true
+sleep 6
+snap 14-profile-or-auth.png
+
+# --- Notifications (More tile) ---
+goto_more
+tap_with_scroll "Notifications" exact 4 || true
+sleep 5
+snap 15-notifications.png
+
+# --- Saved (More tile) ---
+goto_more
+tap_with_scroll "Saved" exact 4 || true
+sleep 5
+snap 16-saved.png
+
+# --- My submissions (More tile) ---
+goto_more
+tap_with_scroll "My submissions" contains 4 || true
+sleep 5
+snap 17-my-submissions.png
+
+# --- Resources / published library (More tile) ---
+goto_more
+tap_with_scroll "Complete resources" contains 4 || true
+sleep 6
+snap 18-resources.png
+
+# --- Recommend (More tile, best effort) ---
+goto_more
+tap_with_scroll "Recommend" contains 4 || true
+wait_for "Recommend a State" 30 || true
+sleep 3
+snap 19-recommend.png
+
+# --- Glossary (More tile) ---
+goto_more
+tap_with_scroll "Glossary" contains 4 || true
+wait_for "AMERICA LIFE DICTIONARY" 45 || true
+sleep 3
+snap 20-glossary.png
+
+# --- Jobs shortcut (More tile -> marketplace filtered) ---
+goto_more
+tap_with_scroll "Jobs" exact 4 || true
+sleep 6
+snap 21-jobs.png
+
+# --- Housing shortcut (More tile -> marketplace filtered) ---
+goto_more
+tap_with_scroll "Housing" exact 4 || true
+sleep 6
+snap 22-housing.png
+
+# --- Admin dashboard (More tile; guest should be gated — capture as-is) ---
+goto_more
+tap_with_scroll "Admin dashboard" contains 4 || true
+sleep 6
+snap 23-admin.png
+
+# --- Legal: Privacy tile opens the website (Linking.openURL) — capture the
+# browser as direct evidence, LAST step of the walk. ---
+goto_more
+tap_with_scroll "Privacy" contains 5 || true
 sleep 8
-snap 06-feed.png
+snap 24-legal-privacy.png
+echo "foreground after Privacy tap:"
+adb shell dumpsys activity activities 2>/dev/null | grep -i -m2 "topResumedActivity\|ResumedActivity" || true
+# Return to the app via its launcher (no hardware back).
+adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 || true
+sleep 6
+snap 25-returned-to-app.png
 
 dump_ui
 cp /tmp/dump.xml "$OUT/debug-final-dump.xml" || true
