@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# AnswerForU v3.7.0 GATE walk — full-section screenshot capture.
-# Runs on the CI host with adb connected to a booted emulator.
-# Captures the REAL app UI via screencap, running the production release APK
-# against the LIVE backend (https://answerforu.com) as a guest. No account
-# is created, nothing is posted or saved server-side. All navigation uses
-# the app's own on-screen controls (bottom nav, tiles, buttons) — NO
-# hardware back: with predictive back enabled, an injected keyevent 4
-# finishes the activity and backgrounds the app.
+# AnswerForU v3.7.0 GATE walk — part 2: the All-sections grid targets that
+# the first walk could not reach (off-screen tile taps + the guest auth
+# trap). Same rules: production release APK, LIVE backend, guest only, no
+# account created, nothing posted; navigation only via on-screen controls
+# (NO hardware back). Recovery from the auth screen uses its own
+# "Browse without an account" button.
 set -x
 PKG="com.answerforu.app"
 OUT="screenshots"
@@ -18,7 +16,6 @@ dump_ui() {
 }
 
 tap_text() {
-  # $1 = text, $2 = exact|contains (default contains)
   dump_ui
   local coords
   coords=$(python3 scripts/shots/tap_text.py /tmp/dump.xml "$1" "${2:-contains}") || return 1
@@ -39,7 +36,6 @@ dismiss_anr() {
 }
 
 wait_for() {
-  # $1 = text anchor, $2 = max seconds
   local t=0
   while [ $t -lt "$2" ]; do
     if ui_has "$1"; then echo "anchor '$1' found after ~${t}s"; return 0; fi
@@ -50,12 +46,12 @@ wait_for() {
 }
 
 tap_with_scroll() {
-  # $1 = text, $2 = mode, $3 = max attempts (scrolls between attempts)
+  # $1 = text, $2 = mode, $3 = max attempts
   local i=1
   while [ $i -le "$3" ]; do
     if tap_text "$1" "$2"; then echo "tapped '$1' on attempt $i"; return 0; fi
     echo "tap attempt $i for '$1' failed; scrolling"
-    adb shell input swipe 540 1400 540 700 300 || true
+    adb shell input swipe 540 1400 540 750 300 || true
     sleep 2; i=$((i+1))
   done
   return 1
@@ -63,12 +59,41 @@ tap_with_scroll() {
 
 snap() { dismiss_anr; sleep 1; adb exec-out screencap -p > "$OUT/$1"; echo "saved $1"; }
 
-decline_perm() {
-  if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
-  if tap_text "Don't allow" contains; then echo "permission dialog dismissed (ascii)"; sleep 1; fi
+scroll_top() {
+  local i=1
+  while [ $i -le 5 ]; do adb shell input swipe 540 500 540 1500 250 || true; sleep 1; i=$((i+1)); done
 }
 
-goto_more() { tap_text "More" exact || true; sleep 3; }
+recover_guest() {
+  # If a section gated us onto the auth screen (no bottom nav there), exit
+  # through its own guest button.
+  if ui_has "Browse without an account"; then
+    echo "on auth screen; exiting via Browse without an account"
+    tap_text "Browse without an account" contains || true
+    sleep 5
+  fi
+}
+
+goto_more() {
+  recover_guest
+  tap_text "More" exact || true
+  sleep 3
+}
+
+visit() {
+  # $1 = tile text, $2 = mode, $3 = anchor (may be empty), $4 = outfile
+  goto_more
+  scroll_top
+  if tap_with_scroll "$1" "$2" 9; then
+    if [ -n "$3" ]; then wait_for "$3" 40 || true; fi
+    sleep 4
+  else
+    echo "TILE NOT FOUND: $1"
+    sleep 2
+  fi
+  snap "$4"
+  recover_guest
+}
 
 adb wait-for-device
 adb shell wm size 1080x1920 || true
@@ -78,189 +103,59 @@ adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell pm clear "$PKG" || true
 adb logcat -c || true
 
-# --- Cold start measurement (true first run, data cleared) ---
 adb shell am start -W -n "$PKG/.MainActivity" | tee "$OUT/debug-coldstart.txt" || true
-echo "pid after am start: $(adb shell pidof "$PKG" || echo NONE)"
-if ! adb shell pidof "$PKG" >/dev/null 2>&1; then
-  echo "no app process after am start; trying monkey launcher"
-  adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 || true
-  sleep 5
-  echo "pid after monkey: $(adb shell pidof "$PKG" || echo NONE)"
-fi
 sleep 8
 dismiss_anr
-decline_perm
+if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
 
-# --- First-run onboarding (v3.7.0 WelcomeTour, Arabic default) ---
+# Skip the onboarding tour this time (slides captured in walk 1).
 wait_for "تخطي" 90 || sleep 5
-snap 00-onboarding-1.png
-if tap_text "التالي" exact; then echo "tour next 1"; sleep 3; fi
-snap 00-onboarding-2.png
-if tap_text "التالي" exact; then echo "tour next 2"; sleep 3; fi
-snap 00-onboarding-3.png
-if tap_text "ابدأ الاستكشاف" contains; then echo "tour finished via Start exploring"; sleep 4; fi
-decline_perm
-
-# --- Home in Arabic (default state) ---
+if tap_text "تخطي" exact; then echo "tour skipped"; sleep 4; fi
 wait_for "الرئيسية" 60 || sleep 3
-sleep 3
-snap 01-home.png
+if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 5; fi
+wait_for "Everything you need" 45 || true
 
-# Switch to English with the header language chip (cycles ar -> en).
-if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 4; fi
-dismiss_anr
-wait_for "Explore sections" 45 || wait_for "Everything you need" 30 || true
-sleep 2
-snap 02-home-en.png
+# --- Grid targets in tile order ---
+visit "U.S. Glossary" contains "AMERICA LIFE DICTIONARY" 30-glossary.png
+visit "Recommend Me" contains "Recommend a State" 31-recommend.png
+visit "Complete resources" contains "" 32-resources.png
+visit "Services" exact "" 33-services.png
+visit "Products" exact "" 34-products.png
+visit "Housing" exact "" 35-housing.png
+visit "Jobs" exact "" 36-jobs.png
+visit "Feed" exact "CONNECT & SHARE" 37-feed.png
+visit "My submissions" contains "" 38-my-submissions.png
+visit "Messages" exact "No messages yet" 39-messages.png
+visit "CV Builder" contains "YOUR NEXT OPPORTUNITY" 40-cv-builder.png
+visit "Notifications" contains_last "" 41-notifications.png
+visit "Saved" exact "" 42-saved.png
+visit "Verification" exact "" 43-verification.png
 
-# --- Journey (bottom tab) ---
-tap_text "Journey" exact || true
-wait_for "Choose a stage" 60 || true
-sleep 2
-snap 03-journey.png
-
-# --- Marketplace (bottom tab; community places load from live API) ---
-tap_text "Marketplace" exact || true
-wait_for "Explore places" 60 || true
-sleep 6
-adb shell input swipe 540 1400 540 950 300 || true
-sleep 4
-snap 04-marketplace.png
-
-# --- Learn hub (bottom tab) ---
-tap_text "Learn" exact || true
-wait_for "Learn life in America" 60 || true
-sleep 2
-snap 05-learn.png
-
-# --- Citizenship (from Learn hub) ---
-tap_with_scroll "U.S. Citizenship" contains 3 || true
-wait_for "Choose a study area" 60 || wait_for "CITIZENSHIP GUIDE" 20 || true
-sleep 3
-snap 06-citizenship.png
-
-# --- Survival English (back via Learn tab) ---
-tap_text "Learn" exact || true
-sleep 3
-tap_with_scroll "Survival English" contains 3 || true
-wait_for "EVERYDAY ENGLISH" 60 || wait_for "Choose a situation" 20 || true
-sleep 2
-snap 07-survival-english.png
-
-# --- Offline packs (back via Learn tab) ---
-tap_text "Learn" exact || true
-sleep 3
-tap_with_scroll "Offline packs" contains 3 || true
-sleep 5
-snap 08-offline-packs.png
-
-# --- All sections / More tab ---
+# --- Legal tiles open the website in the browser: direct evidence ---
 goto_more
-wait_for "DISCOVER ANSWERFORU" 45 || true
-sleep 2
-snap 09-all-sections.png
-adb shell input swipe 540 1400 540 700 300 || true
-sleep 2
-snap 10-all-sections-scrolled.png
-
-# --- CV Builder (More tile) ---
-goto_more
-tap_with_scroll "CV Builder" contains 3 || true
-wait_for "YOUR NEXT OPPORTUNITY" 45 || true
-sleep 3
-snap 11-cv-builder.png
-
-# --- Feed (More tile) ---
-goto_more
-tap_with_scroll "Feed" exact 4 || true
-wait_for "CONNECT & SHARE" 45 || true
-sleep 5
-snap 12-feed.png
-
-# --- Messages (More tile; may gate to auth as guest — capture as-is) ---
-goto_more
-tap_with_scroll "Messages" exact 4 || true
-sleep 6
-snap 13-messages.png
-
-# --- My Account / Profile (More tile; as guest may show Auth — capture as-is) ---
-goto_more
-tap_with_scroll "My Account" contains 4 || true
-sleep 6
-snap 14-profile-or-auth.png
-
-# --- Notifications (More tile) ---
-goto_more
-tap_with_scroll "Notifications" exact 4 || true
-sleep 5
-snap 15-notifications.png
-
-# --- Saved (More tile) ---
-goto_more
-tap_with_scroll "Saved" exact 4 || true
-sleep 5
-snap 16-saved.png
-
-# --- My submissions (More tile) ---
-goto_more
-tap_with_scroll "My submissions" contains 4 || true
-sleep 5
-snap 17-my-submissions.png
-
-# --- Resources / published library (More tile) ---
-goto_more
-tap_with_scroll "Complete resources" contains 4 || true
-sleep 6
-snap 18-resources.png
-
-# --- Recommend (More tile, best effort) ---
-goto_more
-tap_with_scroll "Recommend" contains 4 || true
-wait_for "Recommend a State" 30 || true
-sleep 3
-snap 19-recommend.png
-
-# --- Glossary (More tile) ---
-goto_more
-tap_with_scroll "Glossary" contains 4 || true
-wait_for "AMERICA LIFE DICTIONARY" 45 || true
-sleep 3
-snap 20-glossary.png
-
-# --- Jobs shortcut (More tile -> marketplace filtered) ---
-goto_more
-tap_with_scroll "Jobs" exact 4 || true
-sleep 6
-snap 21-jobs.png
-
-# --- Housing shortcut (More tile -> marketplace filtered) ---
-goto_more
-tap_with_scroll "Housing" exact 4 || true
-sleep 6
-snap 22-housing.png
-
-# --- Admin dashboard (More tile; guest should be gated — capture as-is) ---
-goto_more
-tap_with_scroll "Admin dashboard" contains 4 || true
-sleep 6
-snap 23-admin.png
-
-# --- Legal: Privacy tile opens the website (Linking.openURL) — capture the
-# browser as direct evidence, LAST step of the walk. ---
-goto_more
-tap_with_scroll "Privacy" contains 5 || true
+scroll_top
+if tap_with_scroll "About" exact_last 9; then echo "About tile tapped"; fi
 sleep 8
-snap 24-legal-privacy.png
-echo "foreground after Privacy tap:"
+echo "foreground after About tap:"
 adb shell dumpsys activity activities 2>/dev/null | grep -i -m2 "topResumedActivity\|ResumedActivity" || true
-# Return to the app via its launcher (no hardware back).
+snap 44-legal-about.png
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 || true
 sleep 6
-snap 25-returned-to-app.png
+recover_guest
+goto_more
+scroll_top
+if tap_with_scroll "Privacy policy" contains_last 9; then echo "Privacy tile tapped"; fi
+sleep 8
+echo "foreground after Privacy tap:"
+adb shell dumpsys activity activities 2>/dev/null | grep -i -m2 "topResumedActivity\|ResumedActivity" || true
+snap 45-legal-privacy.png
+adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 || true
+sleep 6
+recover_guest
+snap 46-final-screen.png
 
 dump_ui
 cp /tmp/dump.xml "$OUT/debug-final-dump.xml" || true
-adb shell dumpsys activity activities 2>/dev/null | grep -i -A2 -B2 "answerforu" > "$OUT/debug-activities.txt" || true
 adb shell pidof "$PKG" > "$OUT/debug-pid.txt" 2>/dev/null || echo "no process" > "$OUT/debug-pid.txt"
 adb logcat -d -b crash > "$OUT/logcat-crash.txt" 2>/dev/null || true
 adb logcat -d > "$OUT/logcat-full.txt" 2>/dev/null || true
