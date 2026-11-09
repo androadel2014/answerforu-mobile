@@ -1,38 +1,50 @@
 #!/usr/bin/env bash
-# AnswerForU v3.7.0 GATE walk — part 2: the All-sections grid targets that
-# the first walk could not reach (off-screen tile taps + the guest auth
-# trap). Same rules: production release APK, LIVE backend, guest only, no
-# account created, nothing posted; navigation only via on-screen controls
-# (NO hardware back). Recovery from the auth screen uses its own
-# "Browse without an account" button.
+# AnswerForU v3.7.0 GATE walk — part 3: remaining All-sections targets.
+# Walk 2 was defeated by a Pixel Launcher ANR dialog whose window hijacked
+# every uiautomator dump (the app itself was healthy — screencaps showed
+# the onboarding tour throughout). This version self-heals inside dump_ui:
+# any dump containing an "isn't responding" dialog taps "Wait" and
+# re-dumps before the caller proceeds. Same rules as before: production
+# release APK, LIVE backend, guest only, no account, on-screen controls
+# only (NO hardware back); auth exit via "Browse without an account".
 set -x
 PKG="com.answerforu.app"
 OUT="screenshots"
 mkdir -p "$OUT"
 
-dump_ui() {
+dump_raw() {
   adb shell uiautomator dump /sdcard/dump.xml >/dev/null 2>&1 || true
   adb pull /sdcard/dump.xml /tmp/dump.xml >/dev/null 2>&1 || true
+}
+
+coords_for() {
+  python3 scripts/shots/tap_text.py /tmp/dump.xml "$1" "${2:-contains}"
+}
+
+dump_ui() {
+  local i=1
+  while [ $i -le 4 ]; do
+    dump_raw
+    if grep -q "isn.t responding" /tmp/dump.xml 2>/dev/null; then
+      echo "ANR dialog in dump (try $i); tapping Wait"
+      local c
+      c=$(coords_for "Wait" exact) && adb shell input tap $c
+      sleep 3; i=$((i+1)); continue
+    fi
+    return 0
+  done
 }
 
 tap_text() {
   dump_ui
   local coords
-  coords=$(python3 scripts/shots/tap_text.py /tmp/dump.xml "$1" "${2:-contains}") || return 1
+  coords=$(coords_for "$1" "${2:-contains}") || return 1
   adb shell input tap $coords
 }
 
 ui_has() {
   dump_ui
   grep -q "$1" /tmp/dump.xml
-}
-
-dismiss_anr() {
-  if ui_has "isn.t responding"; then
-    echo "ANR dialog present; tapping Wait"
-    tap_text "Wait" exact || true
-    sleep 3
-  fi
 }
 
 wait_for() {
@@ -46,7 +58,6 @@ wait_for() {
 }
 
 tap_with_scroll() {
-  # $1 = text, $2 = mode, $3 = max attempts
   local i=1
   while [ $i -le "$3" ]; do
     if tap_text "$1" "$2"; then echo "tapped '$1' on attempt $i"; return 0; fi
@@ -57,7 +68,7 @@ tap_with_scroll() {
   return 1
 }
 
-snap() { dismiss_anr; sleep 1; adb exec-out screencap -p > "$OUT/$1"; echo "saved $1"; }
+snap() { dump_ui; sleep 1; adb exec-out screencap -p > "$OUT/$1"; echo "saved $1"; }
 
 scroll_top() {
   local i=1
@@ -65,8 +76,6 @@ scroll_top() {
 }
 
 recover_guest() {
-  # If a section gated us onto the auth screen (no bottom nav there), exit
-  # through its own guest button.
   if ui_has "Browse without an account"; then
     echo "on auth screen; exiting via Browse without an account"
     tap_text "Browse without an account" contains || true
@@ -104,13 +113,14 @@ adb shell pm clear "$PKG" || true
 adb logcat -c || true
 
 adb shell am start -W -n "$PKG/.MainActivity" | tee "$OUT/debug-coldstart.txt" || true
-sleep 8
-dismiss_anr
+sleep 10
 if tap_text "Don’t allow" contains; then echo "permission dialog dismissed"; sleep 1; fi
 
-# Skip the onboarding tour this time (slides captured in walk 1).
-wait_for "تخطي" 90 || sleep 5
-if tap_text "تخطي" exact; then echo "tour skipped"; sleep 4; fi
+# Full tour this time (tap Next through all slides, then Start exploring).
+wait_for "تخطي" 120 || sleep 5
+if tap_text "التالي" exact; then echo "tour next 1"; sleep 3; fi
+if tap_text "التالي" exact; then echo "tour next 2"; sleep 3; fi
+if tap_text "ابدأ الاستكشاف" contains; then echo "tour finished"; sleep 4; fi
 wait_for "الرئيسية" 60 || sleep 3
 if tap_text "AR" exact; then echo "language chip tapped (ar -> en)"; sleep 5; fi
 wait_for "Everything you need" 45 || true
