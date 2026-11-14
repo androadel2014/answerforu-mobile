@@ -28,7 +28,8 @@
     "expo-auth-session": "~58.0.16",
     "expo-crypto": "~58.0.7",
     "expo-web-browser": "~58.0.7",
-    "expo-linking": "~58.0.8"
+    "expo-linking": "~58.0.8",
+    "@expo/vector-icons": "^15.0.2"
   },
   "devDependencies": {}
 }

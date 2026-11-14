@@ -1,3 +1,9 @@
+# AnswerForU Mobile v3.7.0 · versionCode 18 — "جواب" Airmail identity round
+
+**Latest round:** a presentation-only reskin of the v3.7.0 (versionCode 16) source with the approved Airmail identity: royal blue, cream, diagonal red/blue airmail stripes, navy and gold. The language switch (العربية / English / Español) is always visible. It is applicationId `com.answerforu.app`, versionName `3.7.0`, versionCode `18`. See `AIRMAIL-ROUND6-REPORT.md` and `SOURCE-DIFF-v3.7.0-vc18.md`. Run `npm test`: 76/76 pass.
+
+---
+
 # AnswerForU Mobile v3.7.0 — Design + UX round
 
 Complete Expo React Native source based on the working v3.6.1 build. Android `versionCode: 16`, applicationId `com.answerforu.app`, website design reference v6.3.9. This is a **presentation-only redesign**; the account system, Google OAuth bridge and client IDs, API endpoint list, permissions, all existing routes, CV data, and interactive operations are unchanged.

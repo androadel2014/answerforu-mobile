@@ -9,8 +9,8 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const data=p=>JSON.parse(read(p));
 const app=data('app.json');
-test('v3.7.0 / code16 / com.answerforu.app / web6.3.9 match',()=>{
- assert.equal(app.expo.version,'3.7.0');assert.equal(app.expo.android.versionCode,16);
+test('v3.7.0 / code18 / com.answerforu.app / web6.3.9 match',()=>{
+ assert.equal(app.expo.version,'3.7.0');assert.equal(app.expo.android.versionCode,18);
  assert.equal(app.expo.android.package,'com.answerforu.app');assert.equal(app.expo.extra.webMasterVersion,'6.3.9');
  assert.equal(data('package.json').version,'3.7.0');
 });

@@ -1,21 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Linking, Pressable, StyleSheet, View } from "react-native";
 import { api } from "../api/client";
-import { AwareTextInput, Btn, Card, Empty, Loading, Pill, Screen, SectionHero, SectionHeading, Txt } from "../components/UI";
+import { AwareTextInput, Btn, Card, Empty, Icon, IconChip, Loading, Pill, Screen, SectionHero, SectionHeading, Stamp, Txt } from "../components/UI";
+import { ScrollView } from "react-native";
 import { C } from "../theme";
 import { tr } from "../i18n";
 import {friendlyError} from "../logic/appSafety.mjs";
 
 // The PHP API is the single source of content; do not duplicate the lesson catalog in the APK.
 const LESSONS = [
-  ["guides", "◈", "دليل الحياة", "Life guides", "life_guides","Guías prácticas"],
-  ["currency", "$", "العملات", "Currency", "currency_items","Monedas"],
-  ["signs", "△", "إشارات المرور", "Road signs", "road_signs","Señales viales"],
-  ["quiz", "?", "اختبر نفسك", "Practice quiz", "quiz_bank","Cuestionario"],
-  ["stores", "▣", "المحلات", "Stores", "store_groups","Tiendas"],
-  ["services", "⚙", "الخدمات اليومية", "Daily services", "service_places","Servicios diarios"],
-  ["education", "✦", "التعليم", "Education", "education_cards","Educación"],
-  ["measure", "↔", "المقاسات", "Measurements", "conversions","Medidas"],
+  ["guides", "book-open", "دليل الحياة", "Life guides", "life_guides","Guías prácticas"],
+  ["currency", "dollar-sign", "العملات", "Currency", "currency_items","Monedas"],
+  ["signs", "alert-triangle", "إشارات المرور", "Road signs", "road_signs","Señales viales"],
+  ["quiz", "help-circle", "اختبر نفسك", "Practice quiz", "quiz_bank","Cuestionario"],
+  ["stores", "shopping-bag", "المحلات", "Stores", "store_groups","Tiendas"],
+  ["services", "tool", "الخدمات اليومية", "Daily services", "service_places","Servicios diarios"],
+  ["education", "award", "التعليم", "Education", "education_cards","Educación"],
+  ["measure", "sliders", "المقاسات", "Measurements", "conversions","Medidas"],
 ];
 const localized = (v, lang) => {
   if (v == null) return "";
@@ -68,9 +69,9 @@ function Currency({ item, lang }) {
   </Card>;
 }
 function LessonCard({title, body, label, image, fallback, url, lang}) {
-  return <Card style={{gap:9}}>
-    <Txt lang={lang} style={{fontSize:17}} weight="900">{localized(title,lang) || label}</Txt>
-    {image?<RemoteImage primary={image} fallback={fallback} label={localized(title,lang)}/>:null}
+  return <Card style={{gap:9,overflow:"hidden"}}>
+    {image?<View style={styles.imagePanel}><RemoteImage primary={image} fallback={fallback} label={localized(title,lang)}/></View>:null}
+    <View style={{flexDirection:"row",alignItems:"center",gap:8}}><Txt lang={lang} style={{fontSize:19,flex:1,color:C.navy}} weight="900">{localized(title,lang) || label}</Txt>{label&&localized(title,lang)?<View style={styles.codeTag}><Txt weight="900" style={{fontSize:13,color:"#fff"}}>{label}</Txt></View>:null}</View>
     {body?<Txt lang={lang} style={{color:C.muted,lineHeight:24}}>{localized(body,lang)}</Txt>:null}
     <OpenSource url={url} lang={lang}/>
   </Card>;
@@ -89,13 +90,16 @@ export default function LearnScreen({ lang, navigate }) {
     const q=query.trim().toLowerCase();return all.filter(x=>JSON.stringify(x).toLowerCase().includes(q));
   },[data,current[4],query]);
   function select(key){setTab(key);setQuery("");setVisible(15);}
-  return <Screen lang={lang}><Card style={{gap:9}}><Txt lang={lang} weight="900" style={{fontSize:17}}>{tr(lang,"تعلم واتدرب كمان","More learning and practice","Más aprendizaje y práctica")}</Txt><Btn lang={lang} title={tr(lang,"🇺🇸 الجنسية الأمريكية","🇺🇸 U.S. Citizenship","🇺🇸 Ciudadanía estadounidense")} onPress={()=>navigate("citizenship")} variant="blue"/><Btn lang={lang} title={tr(lang,"🗣 إنجليزي أول شهور","🗣 Survival English","🗣 Inglés de supervivencia")} onPress={()=>navigate("survival")} variant="light"/><Btn lang={lang} title={tr(lang,"⇩ حزم التعلم دون إنترنت","⇩ Offline packs","⇩ Paquetes sin conexión")} onPress={()=>navigate("offlinePacks")} variant="light"/></Card>
-    <SectionHero lang={lang} icon="✦" eyebrow={tr(lang,"خطوة صغيرة كل يوم","SMALL STEPS, BIG PROGRESS","APRENDE PASO A PASO")} title={tr(lang,"اتعلم الحياة في أمريكا","Learn life in America","Aprende sobre la vida en EE. UU.")} subtitle={tr(lang,"دروس وصور وتدريبات متجددة من الموقع.","Fresh lessons, visuals and activities from the website.","Lecciones, imágenes y actividades del sitio web.")}/><SectionHeading lang={lang} title={tr(lang,"اختار موضوعك","Choose your topic","Elige un tema")} caption={tr(lang,"اضغط على أي موضوع لعرض الدرس تحت","Select a topic to view its lessons","Elige un tema para ver sus lecciones")}/>
+  const stats=data?[[LESSONS.length,tr(lang,"مسارات تعلم","learning paths","rutas"),C.royal],[(data.road_signs||[]).length,tr(lang,"إشارة طريق","road signs","señales"),C.airRed],[(data.quiz_bank||[]).length,tr(lang,"أسئلة في الاختبار","quiz questions","preguntas"),C.green]]:[];
+  return <Screen lang={lang}>
+    <SectionHero lang={lang} icon="feather" eyebrow={tr(lang,"Learn America · خطوة صغيرة كل يوم","Learn America · small steps, big progress","Learn America · paso a paso")} title={tr(lang,"اتعلم الحياة في أمريكا","Learn life in America","Aprende sobre la vida en EE. UU.")} subtitle={tr(lang,"دروس وصور وتدريبات متجددة من الموقع.","Fresh lessons, visuals and activities from the website.","Lecciones, imágenes y actividades del sitio web.")}>{stats.length?<View style={styles.stats}>{stats.map(([n,l,c],i)=><Stamp key={i} style={styles.stat}><Txt weight="900" style={{fontSize:34,lineHeight:40,color:c,textAlign:"center"}}>{String(n)}</Txt><Txt lang={lang} weight="700" style={{fontSize:14,lineHeight:18,textAlign:"center",color:C.navy}}>{l}</Txt></Stamp>)}</View>:null}</SectionHero>
+    <Card style={{gap:10}}><Txt lang={lang} weight="900" style={{fontSize:17}}>{tr(lang,"تعلم واتدرب كمان","More learning and practice","Más aprendizaje y práctica")}</Txt><View style={styles.pills}><View style={[styles.navPill,{backgroundColor:C.navy}]}><Icon name="book-open" size={16} color={C.gold}/><Txt lang={lang} weight="900" style={{color:"#fff",fontSize:14}}>{tr(lang,"الدروس والاختبارات","Lessons & quizzes","Lecciones y pruebas")}</Txt></View><Pressable accessibilityRole="button" onPress={()=>navigate("citizenship")} style={[styles.navPill,{backgroundColor:C.goldSoft}]}><Icon name="award" size={16} color={C.goldDark}/><Txt lang={lang} weight="900" style={{fontSize:14,color:C.goldDark}}>{tr(lang,"الجنسية الأمريكية","U.S. Citizenship","Ciudadanía estadounidense")}</Txt></Pressable><Pressable accessibilityRole="button" onPress={()=>navigate("survival")} style={[styles.navPill,{backgroundColor:C.royalSoft}]}><Icon name="message-circle" size={16} color={C.royal}/><Txt lang={lang} weight="900" style={{fontSize:14,color:C.royal}}>{tr(lang,"إنجليزي أول شهور","Survival English","Inglés de supervivencia")}</Txt></Pressable><Pressable accessibilityRole="button" onPress={()=>navigate("offlinePacks")} style={[styles.navPill,styles.outlinePill]}><Icon name="download" size={16} color={C.navy}/><Txt lang={lang} weight="900" style={{fontSize:14}}>{tr(lang,"حزم التعلم دون إنترنت","Offline packs","Paquetes sin conexión")}</Txt></Pressable><Pressable accessibilityRole="button" onPress={()=>navigate("glossary")} style={[styles.navPill,styles.outlinePill]}><Icon name="book" size={16} color={C.navy}/><Txt lang={lang} weight="900" style={{fontSize:14}}>{tr(lang,"قاموس أمريكا — المصطلحات","U.S. Glossary — terms","Glosario")}</Txt></Pressable></View></Card><SectionHeading lang={lang} title={tr(lang,"اختار موضوعك","Choose your topic","Elige un tema")} caption={tr(lang,"اضغط على أي موضوع لعرض الدرس تحت","Select a topic to view its lessons","Elige un tema para ver sus lecciones")}/>
     {loading?<Loading lang={lang}/>:null}
     {error?<Card style={{gap:10}}><Txt lang={lang} style={{color:C.red}}>{error}</Txt><Btn lang={lang} title={tr(lang,"إعادة المحاولة","Retry")} onPress={load} variant="blue"/></Card>:null}
     {data?<>
-      <View style={styles.chips}>{LESSONS.map(([key,icon,ar,en,field,es])=><Pressable key={key} onPress={()=>select(key)} style={[styles.chip,tab===key&&styles.active]}><Txt lang={lang} style={{color:tab===key?"#fff":C.ink,fontSize:12}} weight="900">{icon} {tr(lang,ar,en,es)} ({(data[field]||[]).length})</Txt></Pressable>)}</View>
-      {tab!=="quiz"?<AwareTextInput value={query} onChangeText={v=>{setQuery(v);setVisible(15)}} placeholder={tr(lang,"ابحث في الدروس...","Search lessons...")} placeholderTextColor="#64748b" style={styles.search}/>:null}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>{LESSONS.map(([key,icon,ar,en,field,es],i)=>{const on=tab===key;return <Pressable key={key} accessibilityRole="button" onPress={()=>select(key)} style={[styles.chip,on&&styles.active]}><IconChip name={icon} tint={on?1:0} size={42} iconSize={19}/><Txt lang={lang} numberOfLines={2} style={{color:on?"#fff":C.navy,fontSize:16,lineHeight:21,textAlign:"center"}} weight="900">{tr(lang,ar,en,es)}</Txt><Txt lang={lang} style={{color:on?"#DCE5FF":C.muted,fontSize:13,textAlign:"center"}}>{(data[field]||[]).length} {tr(lang,"عنصر","items","elementos")}</Txt><View style={[styles.openTag,on&&{backgroundColor:C.gold,borderColor:C.gold}]}><Txt lang={lang} weight="900" style={{fontSize:13,color:C.navy,textAlign:"center"}}>{on?tr(lang,"مفتوح تحت","Open below","Abierto abajo"):tr(lang,"افتح القسم","Open section","Abrir")}</Txt></View></Pressable>})}</ScrollView>
+      <View style={styles.openBanner}><Txt lang={lang} weight="900" style={{color:C.green}}>{tr(lang,"القسم المفتوح الآن: ","Open now: ","Abierto ahora: ")}{tr(lang,current[2],current[3],current[5])}</Txt></View>
+      {tab!=="quiz"?<AwareTextInput value={query} onChangeText={v=>{setQuery(v);setVisible(15)}} placeholder={tr(lang,"ابحث في الدروس...","Search lessons...")} placeholderTextColor="#9A9384" style={styles.search}/>:null}
       {tab==="quiz"?<QuizView bank={items} lang={lang}/>:null}
       {tab==="currency"?items.slice(0,visible).map((x,i)=><Currency key={x.id||i} item={x} lang={lang}/>):null}
       {tab==="signs"?items.slice(0,visible).map((x,i)=><LessonCard key={x.id||i} title={x.name||x.label} label={x.code} body={x.meaning} image={x.image_local||x.image} fallback={x.image} lang={lang}/>):null}
@@ -110,8 +114,14 @@ export default function LearnScreen({ lang, navigate }) {
   </Screen>;
 }
 const styles=StyleSheet.create({
-  chips:{flexDirection:"row",flexWrap:"wrap",gap:9},chip:{width:"48%",minHeight:85,justifyContent:"center",backgroundColor:"#fff",borderWidth:1,borderColor:C.line,paddingHorizontal:14,paddingVertical:12,borderRadius:19},active:{backgroundColor:C.teal,borderColor:C.teal},
-  search:{minHeight:48,borderRadius:14,borderWidth:1,borderColor:C.line,backgroundColor:"#fff",paddingHorizontal:14,color:C.ink,fontSize:16},
-  image:{height:190,width:"100%",backgroundColor:"#f8fafc",borderRadius:12},
-  option:{borderWidth:1,borderColor:C.line,backgroundColor:"#fff",padding:14,borderRadius:12},selected:{backgroundColor:C.blue,borderColor:C.blue},correct:{borderColor:C.green},subcard:{gap:5,padding:11,borderRadius:12,backgroundColor:"#f8fafc",borderWidth:1,borderColor:C.line}
+  stats:{flexDirection:"row",gap:9,marginTop:6},stat:{flex:1,alignItems:"center",justifyContent:"center",paddingVertical:12,paddingHorizontal:6,backgroundColor:"#FFFFFF"},
+  pills:{flexDirection:"row",flexWrap:"wrap",gap:8},navPill:{flexDirection:"row",alignItems:"center",gap:7,borderRadius:999,paddingHorizontal:14,minHeight:42},outlinePill:{borderWidth:1.5,borderColor:C.dash,backgroundColor:C.paper},
+  chips:{flexDirection:"row",gap:10,paddingVertical:4,paddingHorizontal:2},chip:{width:140,minHeight:170,alignItems:"center",justifyContent:"space-between",backgroundColor:C.paper,borderWidth:1.3,borderColor:C.line,paddingHorizontal:10,paddingVertical:12,borderRadius:18,gap:6},active:{backgroundColor:C.navy,borderColor:C.navy},
+  openTag:{borderWidth:1.3,borderColor:C.dash,borderRadius:999,paddingHorizontal:10,paddingVertical:4,backgroundColor:C.paper},
+  openBanner:{backgroundColor:C.greenSoft,borderRadius:14,paddingHorizontal:14,paddingVertical:12},
+  codeTag:{backgroundColor:C.navy,borderRadius:999,paddingHorizontal:10,paddingVertical:3},
+  imagePanel:{marginHorizontal:-18,marginTop:-18,marginBottom:4,padding:12,backgroundColor:C.cream,borderBottomWidth:1,borderColor:C.line},
+  search:{minHeight:50,borderRadius:14,borderWidth:1.3,borderColor:"#E2CF9F",backgroundColor:C.paper,paddingHorizontal:14,color:C.ink,fontSize:16},
+  image:{height:190,width:"100%",backgroundColor:C.cream,borderRadius:12},
+  option:{borderWidth:1.3,borderColor:C.line,backgroundColor:C.paper,padding:14,borderRadius:12},selected:{backgroundColor:C.royal,borderColor:C.royal},correct:{borderColor:C.green,borderWidth:2.5},subcard:{gap:5,padding:12,borderRadius:12,backgroundColor:C.cream,borderWidth:1,borderColor:C.line}
 });

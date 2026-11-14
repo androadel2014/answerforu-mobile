@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {Pressable,View} from 'react-native';
 import {api,rows} from '../api/client';
-import {Btn,Card,Empty,Field,Loading,Screen,Txt} from '../components/UI';
+import {Btn,Card,Empty,Field,Loading,Screen,Txt,SectionHero} from '../components/UI';
 import {confirmAction} from '../logic/confirmAction';
 import {friendlyError} from '../logic/appSafety.mjs';
 import {C} from '../theme';
@@ -15,7 +15,7 @@ export default function SavedScreen({lang,navigate}){
  function delCollection(){if(!selected)return;confirmAction({title:T('حذف القائمة؟','Delete this list?','¿Eliminar lista?'),message:T('كل العناصر المحفوظة فيها هتتشال.','Its saved items will be removed.','Se quitarán sus elementos.'),cancelLabel:T('إلغاء','Cancel','Cancelar'),confirmLabel:T('حذف','Delete','Eliminar'),onConfirm:async()=>{try{setBusy(true);await api.deleteFavoriteCollection(selected);setSelected(null);await load()}catch(e){setError(friendlyError(e,lang))}finally{setBusy(false)}}})}
  async function remove(x){try{setBusy(true);await api.removeFavorite(selected,x.item_type||'listing',x.item_id||x.id);await load()}catch(e){setError(friendlyError(e,lang))}finally{setBusy(false)}}
  return <Screen lang={lang}>
- <View style={{gap:5}}><Txt lang={lang} style={{fontSize:25}} weight="900">{T('المحفوظات','Saved places & listings','Mis guardados')}</Txt><Txt lang={lang} style={{color:C.muted}}>{T('رتّب المهم عندك في قوائم واضحة.','Keep important things in organized lists.','Organiza tus favoritos en listas.')}</Txt></View>
+ <SectionHero compact lang={lang} icon="bookmark" title={T('المحفوظات','Saved places & listings','Mis guardados')} subtitle={T('رتّب المهم عندك في قوائم واضحة.','Keep important things in organized lists.','Organiza tus favoritos en listas.')}/>
  <Card style={{gap:8}}><Field lang={lang} label={T('قائمة جديدة','New list','Lista nueva')} value={name} onChangeText={setName} placeholder={T('مثال: بيوت مناسبة','e.g. Homes to visit','ej. Casas para visitar')}/><Btn lang={lang} title={T('＋ إنشاء قائمة','＋ Create list','＋ Crear lista')} variant="blue" disabled={busy} onPress={create}/></Card>
  <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{cols.map(c=><Btn key={c.id} lang={lang} title={`${c.name} (${c.item_count||0})`} variant={String(selected)===String(c.id)?'dark':'light'} onPress={()=>setSelected(c.id)}/>)}</View>
  {selected?<Card style={{gap:8}}><Txt lang={lang} weight="900">{T('إدارة القائمة','Manage this list','Administrar lista')}</Txt><Field lang={lang} label={T('اسم جديد','New name','Nuevo nombre')} value={renaming} onChangeText={setRenaming} placeholder={cols.find(x=>String(x.id)===String(selected))?.name||''}/><Btn lang={lang} title={T('تغيير الاسم','Rename','Renombrar')} variant="light" onPress={rename} disabled={busy}/><Btn lang={lang} title={T('حذف القائمة','Delete list','Eliminar lista')} variant="danger" onPress={delCollection} disabled={busy}/></Card>:null}

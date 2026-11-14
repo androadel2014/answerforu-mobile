@@ -6,7 +6,7 @@ import BottomNav from "./src/components/BottomNav";
 import { api } from "./src/api/client";
 import { clearSession, getLang, getIntroDone, setIntroDone, getToken, getUser, setLangStored, setToken, setUser as storeUser } from "./src/auth/storage";
 import { C } from "./src/theme";
-import { Btn, Txt } from "./src/components/UI";
+import { AirmailStripe, BrandMark, Btn, LangSwitch, Txt, Wordmark } from "./src/components/UI";
 import { tr } from "./src/i18n";
 import { friendlyError, withTimeout, STARTUP_TIMEOUT_MS } from "./src/logic/appSafety.mjs";
 import AuthScreen from "./src/screens/AuthScreen";
@@ -91,11 +91,13 @@ function Root() {
   async function onAuth(data){const t=data?.token||data?.authToken||data?.jwt||"";const u=data?.user||data?.profile||data?.data||null;if(!t)throw new Error("Login response did not include a token");await setToken(t);await storeUser(u);setTokenState(t);setUser(u);setHistory([]);setRoute(afterLogin||{name:"home",params:null});setAfterLogin(null);}
   async function logout(){Keyboard.dismiss();await clearSession();setTokenState("");setUser(null);setHistory([]);setRoute({name:"home",params:null});}
   async function cycleLang(){const next=lang==="ar"?"en":lang==="en"?"es":"ar";setLang(next);await setLangStored(next);}
+  // Direct pick from the always-visible العربية / English / Español switch.
+  async function setLangTo(next){if(!["ar","en","es"].includes(next))return;setLang(next);await setLangStored(next).catch(()=>{});}
   async function updateUser(u){setUser(u);await storeUser(u);}
 
-  if(!ready)return <View style={st.splash}><StatusBar barStyle="dark-content"/><View style={st.mark}/><ActivityIndicator size="large" color={C.blue}/><Txt lang={lang} style={{marginTop:16,color:C.ink,textAlign:"center"}}>{tr(lang,"جاري التحميل…","Loading…","Cargando…")}</Txt></View>;
-  if(showTour)return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}><StatusBar barStyle="dark-content"/><WelcomeTour lang={lang} onDone={()=>{setShowTour(false);setIntroDone().catch(()=>{})}}/></SafeAreaView>;
-  if(route.name==="auth")return <SafeAreaView style={st.safe}><StatusBar barStyle="dark-content"/><AuthScreen lang={lang} onAuth={onAuth} onLang={cycleLang} onBrowse={()=>{setAfterLogin(null);setRoute({name:"home",params:null})}}/></SafeAreaView>;
+  if(!ready)return <View style={st.splash}><StatusBar barStyle="dark-content"/><AirmailStripe height={8} style={st.splashStripeTop}/><View style={st.mark}><BrandMark size={72}/></View><Wordmark size={26}/><ActivityIndicator style={{marginTop:22}} size="large" color={C.royal}/><Txt lang={lang} style={{marginTop:16,color:C.ink,textAlign:"center"}}>{tr(lang,"جاري التحميل…","Loading…","Cargando…")}</Txt><AirmailStripe height={8} style={st.splashStripeBottom}/></View>;
+  if(showTour)return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}><StatusBar barStyle="dark-content"/><WelcomeTour lang={lang} onSetLang={setLangTo} onDone={()=>{setShowTour(false);setIntroDone().catch(()=>{})}}/></SafeAreaView>;
+  if(route.name==="auth")return <SafeAreaView style={st.safe}><StatusBar barStyle="dark-content"/><AuthScreen lang={lang} onAuth={onAuth} onLang={cycleLang} onSetLang={setLangTo} onBrowse={()=>{setAfterLogin(null);setRoute({name:"home",params:null})}}/></SafeAreaView>;
 
   const common={lang,user,navigate,params:route.params,back,onLogout:logout,onUser:updateUser};
   let content=null;
@@ -130,10 +132,10 @@ function Root() {
   const active=route.name==="listingDetail"?"community":route.name==="citizenship"||route.name==="survival"||route.name==="offlinePacks"?"learn":MAIN.has(route.name)?route.name:(route.name==="recommend"||route.name==="directory"||route.name==="resources"?"all":route.name==="profile"||route.name==="messages"||route.name==="cv"||route.name==="feed"||route.name==="glossary"||route.name==="notifications"||route.name==="saved"||route.name==="verification"||route.name==="myRequests"||route.name==="admin"||route.name==="adminContent"?"all":"home");
   return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}>
     <StatusBar barStyle="dark-content"/>
-    <AppHeader lang={lang} user={user} onProfile={()=>navigate(token?"profile":"auth")} onNotifications={()=>navigate("notifications")} onLang={cycleLang}/>
+    <AppHeader lang={lang} user={user} onProfile={()=>navigate(token?"profile":"auth")} onNotifications={()=>navigate("notifications")} onLang={cycleLang} onSetLang={setLangTo}/>
     <View style={st.body}>{bootError?<View style={st.bootNotice}><Txt lang={lang} style={{color:C.red,flex:1}}>{tr(lang,"بعض بياناتك ما اتحملتش. تقدر تكمل أو تجرّب تاني.","Some account details could not load. Continue or retry.","No se pudieron cargar algunos datos. Continúa o reintenta.")}</Txt><Btn lang={lang} variant="light" title={tr(lang,"إعادة","Retry","Reintentar")} onPress={()=>{setBootError("");setBootAttempt(x=>x+1)}}/></View>:null}<ScreenErrorBoundary key={`${route.name}-${JSON.stringify(route.params?.id||route.params?.type||route.params?.tab||"")}-${screenRetry}`} lang={lang} onHome={()=>navigate("home")} onRetry={()=>setScreenRetry(x=>x+1)}>{content}</ScreenErrorBoundary></View>
     {!keyboardOpen ? <BottomNav active={active} lang={lang} onGo={navigate}/> : null}
   </SafeAreaView>;
 }
 export default function App(){return <SafeAreaProvider><Root/></SafeAreaProvider>}
-const st=StyleSheet.create({safe:{flex:1,backgroundColor:C.bg},body:{flex:1,backgroundColor:C.bg},bootNotice:{backgroundColor:C.dangerBg,padding:10,gap:8,flexDirection:"row",alignItems:"center"},splash:{flex:1,backgroundColor:"#fff",alignItems:"center",justifyContent:"center"},mark:{width:64,height:64,borderRadius:22,backgroundColor:C.blue,marginBottom:24}});
+const st=StyleSheet.create({safe:{flex:1,backgroundColor:C.bg},body:{flex:1,backgroundColor:C.bg},bootNotice:{backgroundColor:C.dangerBg,padding:10,gap:8,flexDirection:"row",alignItems:"center"},splash:{flex:1,backgroundColor:C.bg,alignItems:"center",justifyContent:"center"},mark:{marginBottom:14,borderRadius:22,padding:6,backgroundColor:C.paper,borderWidth:3,borderStyle:"dotted",borderColor:C.dash},splashStripeTop:{position:"absolute",top:0,left:0,right:0},splashStripeBottom:{position:"absolute",bottom:0,left:0,right:0}});

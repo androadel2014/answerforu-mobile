@@ -29,10 +29,10 @@ function Configured({lang,onAuth,onBusy,onMessage}){
     try{const session=await api.googleMobile(token);if(alive)await onAuth(session);}
     catch(e){if(alive)onMessage(friendlyError(e,lang))}finally{if(alive)onBusy(false)}
   })();return()=>{alive=false}},[response]);
-  return <Btn lang={lang} title={tr(lang,'المتابعة باستخدام Google','Continue with Google','Continuar con Google')} variant="blue" disabled={!request} onPress={async()=>{onMessage('');onBusy(true);try{const result=await promptAsync();if(result?.type!=='success')onBusy(false)}catch(e){onBusy(false);onMessage(friendlyError(e,lang))}}}/>;
+  return <Btn lang={lang} title={tr(lang,'المتابعة باستخدام Google','Continue with Google','Continuar con Google')} variant="light" disabled={!request} onPress={async()=>{onMessage('');onBusy(true);try{const result=await promptAsync();if(result?.type!=='success')onBusy(false)}catch(e){onBusy(false);onMessage(friendlyError(e,lang))}}}/>;
 }
 export default function GoogleButton({lang,onAuth,onBusy,onMessage}){
   const configured=Boolean(ids.web && (Platform.OS==='web'||ids[Platform.OS]));
-  if(!configured)return <View style={{gap:7}}><Btn lang={lang} variant="blue" title={tr(lang,'المتابعة باستخدام Google','Continue with Google','Continuar con Google')} onPress={()=>onMessage(tr(lang,'تسجيل Google محتاج إعداد معرّف التطبيق أولًا. ممكن تدخل بالإيميل دلوقتي.','Google sign-in needs its app client ID configured. You can use email sign-in meanwhile.','Google necesita configurar el identificador de la app. Puedes acceder con correo.'))}/></View>;
+  if(!configured)return <View style={{gap:7}}><Btn lang={lang} variant="light" title={tr(lang,'المتابعة باستخدام Google','Continue with Google','Continuar con Google')} onPress={()=>onMessage(tr(lang,'تسجيل Google محتاج إعداد معرّف التطبيق أولًا. ممكن تدخل بالإيميل دلوقتي.','Google sign-in needs its app client ID configured. You can use email sign-in meanwhile.','Google necesita configurar el identificador de la app. Puedes acceder con correo.'))}/></View>;
   return <Configured lang={lang} onAuth={onAuth} onBusy={onBusy} onMessage={onMessage}/>;
 }
