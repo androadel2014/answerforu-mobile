@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { C } from "../theme";
 import { APP_VERSION } from "../config";
 import { tr } from "../i18n";
-import { AirmailStripe, BrandMark, Icon, LangSwitch, Wordmark } from "./Airmail";
+import { BrandMark, Icon, LangBar, LangSwitch, Wordmark } from "./Airmail";
 
 // Airmail brand header (presentation only). Navy strip with the always-visible
 // العربية / English / Español switch, then the cream bar: mark + wordmark, and
@@ -12,8 +12,7 @@ export default function AppHeader({ lang, user, onProfile, onNotifications, onLa
   const initial = String(user?.display_name || user?.name || user?.username || "A").trim().charAt(0).toUpperCase() || "A";
   const setLang = onSetLang || (() => onLang?.());
   return <View style={st.shell} accessibilityLabel={`AnswerForU v${APP_VERSION}`}>
-    <AirmailStripe height={5} bg={C.navy} />
-    <View style={[st.langBar, { direction: lang === "ar" ? "rtl" : "ltr" }]}><LangSwitch lang={lang} onSet={setLang} /></View>
+    <LangBar><LangSwitch lang={lang} onSet={setLang} /></LangBar>
     <View style={[st.wrap, { direction: lang === "ar" ? "rtl" : "ltr" }]}>
       <View style={st.logoMark}><BrandMark size={40} /></View>
       <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
@@ -35,10 +34,9 @@ export default function AppHeader({ lang, user, onProfile, onNotifications, onLa
 }
 const st = StyleSheet.create({
   shell: { backgroundColor: C.paper },
-  langBar: { backgroundColor: C.navy, paddingHorizontal: 12, paddingVertical: 7, flexDirection: "row", alignItems: "center" },
   wrap: { minHeight: 66, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: C.paper, flexDirection: "row", alignItems: "center", gap: 10 },
   logoMark: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
-  tag: { color: C.muted, fontSize: 11, fontWeight: "700", marginTop: 1 },
+  tag: { color: C.muted, fontSize: 12, fontWeight: "700", marginTop: 1 },
   actions: { flexDirection: "row", alignItems: "center", gap: 8 },
   bell: { width: 42, height: 42, borderRadius: 21, borderWidth: 1, borderColor: C.line, backgroundColor: C.cream, alignItems: "center", justifyContent: "center" },
   bellDot: { position: "absolute", top: 9, right: 10, width: 7, height: 7, borderRadius: 4, backgroundColor: C.airRed },

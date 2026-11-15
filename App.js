@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, BackHandler, Keyboard, Platform, StatusBar, StyleSheet, View } from "react-native";
+import { ActivityIndicator, BackHandler, Keyboard, Platform, Pressable, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "./src/components/AppHeader";
 import BottomNav from "./src/components/BottomNav";
 import { api } from "./src/api/client";
 import { clearSession, getLang, getIntroDone, setIntroDone, getToken, getUser, setLangStored, setToken, setUser as storeUser } from "./src/auth/storage";
 import { C } from "./src/theme";
-import { AirmailStripe, BrandMark, Btn, LangSwitch, Txt, Wordmark } from "./src/components/UI";
+import { AirmailStripe, BrandMark, Btn, ErrorSurfaceContext, Icon, LangSwitch, Txt, Wordmark } from "./src/components/UI";
 import { tr } from "./src/i18n";
 import { friendlyError, withTimeout, STARTUP_TIMEOUT_MS } from "./src/logic/appSafety.mjs";
 import AuthScreen from "./src/screens/AuthScreen";
@@ -48,6 +48,10 @@ function Root() {
   const [showTour,setShowTour]=useState(false);
   const [screenRetry,setScreenRetry] = useState(0);
   const [bootError,setBootError]=useState(""); const [bootAttempt,setBootAttempt]=useState(0);
+  // One error surface per screen: the connection banner is dismissible and stays hidden while the
+  // current screen is already showing its own <ErrorNotice> for the same failure.
+  const [bannerDismissed,setBannerDismissed]=useState(false), [inlineErrors,setInlineErrors]=useState(0);
+  const reportInlineError=useCallback(delta=>setInlineErrors(n=>Math.max(0,n+delta)),[]);
 
   useEffect(()=>{
     let alive=true;
@@ -133,9 +137,9 @@ function Root() {
   return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}>
     <StatusBar barStyle="dark-content"/>
     <AppHeader lang={lang} user={user} onProfile={()=>navigate(token?"profile":"auth")} onNotifications={()=>navigate("notifications")} onLang={cycleLang} onSetLang={setLangTo}/>
-    <View style={st.body}>{bootError?<View style={st.bootNotice}><Txt lang={lang} style={{color:C.red,flex:1}}>{tr(lang,"بعض بياناتك ما اتحملتش. تقدر تكمل أو تجرّب تاني.","Some account details could not load. Continue or retry.","No se pudieron cargar algunos datos. Continúa o reintenta.")}</Txt><Btn lang={lang} variant="light" title={tr(lang,"إعادة","Retry","Reintentar")} onPress={()=>{setBootError("");setBootAttempt(x=>x+1)}}/></View>:null}<ScreenErrorBoundary key={`${route.name}-${JSON.stringify(route.params?.id||route.params?.type||route.params?.tab||"")}-${screenRetry}`} lang={lang} onHome={()=>navigate("home")} onRetry={()=>setScreenRetry(x=>x+1)}>{content}</ScreenErrorBoundary></View>
+    <ErrorSurfaceContext.Provider value={reportInlineError}><View style={st.body}>{bootError&&!bannerDismissed&&inlineErrors===0?<View accessibilityRole="alert" style={st.bootNotice}><Icon name="alert-circle" size={18} color={C.red}/><Txt lang={lang} style={{color:C.navy,flex:1}}>{tr(lang,"بعض بياناتك ما اتحملتش. تقدر تكمل أو تجرّب تاني.","Some account details could not load. Continue or retry.","No se pudieron cargar algunos datos. Continúa o reintenta.")}</Txt><Btn lang={lang} variant="light" title={tr(lang,"إعادة","Retry","Reintentar")} onPress={()=>{setBootError("");setBannerDismissed(false);setBootAttempt(x=>x+1)}}/><Pressable accessibilityRole="button" accessibilityLabel={tr(lang,"إخفاء التنبيه","Dismiss","Cerrar")} hitSlop={8} onPress={()=>setBannerDismissed(true)} style={st.bootClose}><Icon name="x" size={18} color={C.navy}/></Pressable></View>:null}<ScreenErrorBoundary key={`${route.name}-${JSON.stringify(route.params?.id||route.params?.type||route.params?.tab||"")}-${screenRetry}`} lang={lang} onHome={()=>navigate("home")} onRetry={()=>setScreenRetry(x=>x+1)}>{content}</ScreenErrorBoundary></View></ErrorSurfaceContext.Provider>
     {!keyboardOpen ? <BottomNav active={active} lang={lang} onGo={navigate}/> : null}
   </SafeAreaView>;
 }
 export default function App(){return <SafeAreaProvider><Root/></SafeAreaProvider>}
-const st=StyleSheet.create({safe:{flex:1,backgroundColor:C.bg},body:{flex:1,backgroundColor:C.bg},bootNotice:{backgroundColor:C.dangerBg,padding:10,gap:8,flexDirection:"row",alignItems:"center"},splash:{flex:1,backgroundColor:C.bg,alignItems:"center",justifyContent:"center"},mark:{marginBottom:14,borderRadius:22,padding:6,backgroundColor:C.paper,borderWidth:3,borderStyle:"dotted",borderColor:C.dash},splashStripeTop:{position:"absolute",top:0,left:0,right:0},splashStripeBottom:{position:"absolute",bottom:0,left:0,right:0}});
+const st=StyleSheet.create({safe:{flex:1,backgroundColor:C.bg},body:{flex:1,backgroundColor:C.bg},bootNotice:{backgroundColor:C.redSoft,paddingVertical:8,paddingHorizontal:12,gap:8,flexDirection:"row",alignItems:"center",borderBottomWidth:1,borderBottomColor:C.redLine},bootClose:{width:36,height:36,borderRadius:18,alignItems:"center",justifyContent:"center"},splash:{flex:1,backgroundColor:C.bg,alignItems:"center",justifyContent:"center"},mark:{marginBottom:14,borderRadius:22,padding:6,backgroundColor:C.paper,borderWidth:3,borderStyle:"dotted",borderColor:C.dash},splashStripeTop:{position:"absolute",top:0,left:0,right:0},splashStripeBottom:{position:"absolute",bottom:0,left:0,right:0}});

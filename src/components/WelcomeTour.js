@@ -15,7 +15,7 @@ export default function WelcomeTour({lang="ar",onDone,onSetLang}) {
  return <Screen lang={lang} contentStyle={st.page}>
   <View style={{gap:12}}>
    <View style={st.top}><BrandMark size={44}/><View style={{flex:1}}><Wordmark size={21}/></View><Pressable accessibilityRole="button" onPress={onDone} style={st.skip}><Txt lang={lang} style={{color:C.navy}} weight="900">{tr(lang,"تخطي","Skip","Omitir")}</Txt></Pressable></View>
-   {onSetLang?<LangSwitch lang={lang} onSet={onSetLang} dark={false}/>:null}
+   {onSetLang?<View style={st.langAnchor}><LangSwitch lang={lang} onSet={onSetLang} dark={false}/></View>:null}
   </View>
   <AirmailFrame contentStyle={st.art}>
    <View style={st.artTop}><Postmark size={50}/><Stamp style={st.artStamp}><Icon name={s.icon} size={58} color={C.royal}/></Stamp></View>
@@ -29,4 +29,4 @@ export default function WelcomeTour({lang="ar",onDone,onSetLang}) {
   </View>
  </Screen>;
 }
-const st=StyleSheet.create({page:{flexGrow:1,justifyContent:"space-between",paddingTop:18,paddingBottom:28,gap:24},top:{flexDirection:"row",alignItems:"center",gap:11},skip:{paddingHorizontal:16,paddingVertical:10,borderRadius:999,backgroundColor:C.gold},art:{height:220,alignItems:"center",justifyContent:"center",padding:16},artTop:{flexDirection:"row",alignItems:"center",gap:14,direction:"ltr"},artStamp:{width:120,height:136,alignItems:"center",justifyContent:"center",backgroundColor:"#FFFFFF",transform:[{rotate:"-4deg"}]},artPill:{position:"absolute",right:16,bottom:14,paddingHorizontal:14,paddingVertical:7,backgroundColor:C.navy,borderRadius:99},bottom:{gap:12},dots:{flexDirection:"row",justifyContent:"center",gap:7,marginBottom:6,direction:"ltr"},dot:{width:9,height:9,borderRadius:3,backgroundColor:C.line,transform:[{skewX:"-20deg"}]},dotOn:{width:30,backgroundColor:C.royal}});
+const st=StyleSheet.create({page:{flexGrow:1,justifyContent:"space-between",paddingTop:18,paddingBottom:28,gap:24},top:{flexDirection:"row",alignItems:"center",gap:11},langAnchor:{flexDirection:"row",justifyContent:"flex-end",direction:"ltr"},skip:{paddingHorizontal:16,paddingVertical:10,borderRadius:999,backgroundColor:C.gold},art:{height:220,alignItems:"center",justifyContent:"center",padding:16},artTop:{flexDirection:"row",alignItems:"center",gap:14,direction:"ltr"},artStamp:{width:120,height:136,alignItems:"center",justifyContent:"center",backgroundColor:C.white,transform:[{rotate:"-4deg"}]},artPill:{position:"absolute",right:16,bottom:14,paddingHorizontal:14,paddingVertical:7,backgroundColor:C.navy,borderRadius:99},bottom:{gap:12},dots:{flexDirection:"row",justifyContent:"center",gap:7,marginBottom:6,direction:"ltr"},dot:{width:9,height:9,borderRadius:3,backgroundColor:C.line,transform:[{skewX:"-20deg"}]},dotOn:{width:30,backgroundColor:C.royal}});

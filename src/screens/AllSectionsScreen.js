@@ -39,12 +39,11 @@ const items=[
 export default function AllSectionsScreen({lang,navigate,onLogout,user}){
  const all=[...items,...((user?.is_admin===true||Number(user?.is_admin)===1||user?.role==="admin")?[{route:"admin",icon:"shield",ar:"لوحة الإدارة",en:"Admin dashboard",es:"Administración"}]:[])];
  return <Screen lang={lang} contentStyle={{gap:14}}>
-  <View style={s.head}><BrandMark size={46}/><View style={{flex:1}}><Wordmark size={15}/></View></View>
   <SectionHero compact icon="grid" lang={lang} eyebrow={tr(lang,"استكشف AnswerForU","DISCOVER ANSWERFORU","DESCUBRE ANSWERFORU")} title={tr(lang,'كل الأقسام','All sections','Todas las secciones')} subtitle={tr(lang,'اختار القسم اللي محتاجه. تقدر ترجع للرئيسية في أي وقت.','Pick what you need. You can return Home anytime.','Elige lo que necesitas. Puedes volver a Inicio.')}/>
   <View style={s.grid}>{all.map((x,i)=>{const lead=i===0;return <Pressable accessibilityRole="button" accessibilityLabel={tr(lang,x.ar,x.en,x.es||x.en)} key={`${x.route||x.url}-${i}`} onPress={()=>x.url?Linking.openURL(`https://answerforu.com${x.url}`).catch(()=>{}):navigate(x.route,x.params||null)} style={({pressed})=>[s.cell,pressed&&{opacity:.85}]}>
    <Stamp tone={lead?"navy":"paper"} style={s.tile}>
-    <Txt lang={lang} weight="900" style={[s.num,lead&&{color:"#C9D2EA"}]}>{String(i+1).padStart(2,"0")}</Txt>
-    <View style={s.row}>{lead?<View style={s.leadIcon}><Icon name={x.icon} size={22} color={C.navy}/></View>:<IconChip name={x.icon} tint={i%4} size={44} iconSize={20}/>}<Txt lang={lang} numberOfLines={3} style={{flex:1,fontSize:17,lineHeight:23,color:lead?"#FFFFFF":C.navy}} weight="900">{tr(lang,x.ar,x.en,x.es||x.en)}</Txt></View>
+    <Txt lang={lang} weight="900" style={[s.num,lead&&{color:C.onDarkMuted}]}>{String(i+1).padStart(2,"0")}</Txt>
+    <View style={s.row}>{lead?<View style={s.leadIcon}><Icon name={x.icon} size={22} color={C.navy}/></View>:<IconChip name={x.icon} tint={i%4} size={44} iconSize={20}/>}<Txt lang={lang} numberOfLines={3} style={{flex:1,fontSize:17,lineHeight:23,color:lead?C.white:C.navy}} weight="900">{tr(lang,x.ar,x.en,x.es||x.en)}</Txt></View>
     {x.url?<View style={s.webTag}><Icon name="external-link" size={13} color={C.muted}/><Txt lang={lang} style={{color:C.muted,fontSize:13}}>answerforu.com</Txt></View>:null}
    </Stamp>
   </Pressable>})}</View>

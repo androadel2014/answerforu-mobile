@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {Pressable,ScrollView,View} from 'react-native';
 import {api} from '../api/client';
-import {Btn,Card,Field,Screen,Txt} from '../components/UI';
+import {ChipRow,Btn,Card,Field,Screen,Txt} from '../components/UI';
 import ServerContent from '../components/ServerContent';
 import {usePublishedContent} from '../services/publishedContent';
 import {tr} from '../i18n';
@@ -27,8 +27,8 @@ export default function PublishedLibraryScreen({lang,navigate}){
  const [selected,setSelected]=useState('state-agencies'),[state,setState]=useState('VA'),[stateData,setStateData]=useState(null),[stateError,setStateError]=useState(''),[stateLoading,setStateLoading]=useState(false);
  const {data,loading,error}=usePublishedContent(selected);
  async function loadState(){setStateLoading(true);setStateError('');try{const result=await api.stateResource(state.toUpperCase().trim());setStateData(result?.data||result?.resource||result)}catch(e){setStateError(friendlyError(e,lang))}finally{setStateLoading(false)}}
- return <Screen lang={lang}><Card dark style={{gap:8}}><Txt lang={lang} style={{color:'#fff',fontSize:23}} weight='900'>{tr(lang,'المصادر والأدلة الكاملة','Complete resources and guides','Recursos y guías completas')}</Txt><Txt lang={lang} style={{color:'#E4EBFC'}}>{tr(lang,'اقرأ المعلومات الكاملة من قاعدة بيانات الموقع؛ دون إنترنت تظهر فقط النسخة التي حملتها من قبل.','All details come from the website API. Offline only previously downloaded content is shown.','Todos los detalles proceden de la API. Sin conexión se muestra solo el contenido descargado.')}</Txt></Card>
- <ScrollView horizontal showsHorizontalScrollIndicator contentContainerStyle={{gap:8}}>{areas.map(([id,ar,en,es])=><Pressable key={id} onPress={()=>setSelected(id)} style={{paddingHorizontal:15,paddingVertical:11,borderRadius:14,borderWidth:1,borderColor:selected===id?C.blue:C.line,backgroundColor:selected===id?C.blue:'#fff'}}><Txt lang={lang} weight='900' style={{color:selected===id?'#fff':C.ink,fontSize:15}}>{tr(lang,ar,en,es)}</Txt></Pressable>)}</ScrollView>
+ return <Screen lang={lang}><Card dark style={{gap:8}}><Txt lang={lang} style={{color:C.white,fontSize:23}} weight='900'>{tr(lang,'المصادر والأدلة الكاملة','Complete resources and guides','Recursos y guías completas')}</Txt><Txt lang={lang} style={{color:C.royalSoft}}>{tr(lang,'اقرأ المعلومات الكاملة من قاعدة بيانات الموقع؛ دون إنترنت تظهر فقط النسخة التي حملتها من قبل.','All details come from the website API. Offline only previously downloaded content is shown.','Todos los detalles proceden de la API. Sin conexión se muestra solo el contenido descargado.')}</Txt></Card>
+ <ChipRow lang={lang} gap={8}>{areas.map(([id,ar,en,es])=><Pressable key={id} onPress={()=>setSelected(id)} style={{paddingHorizontal:15,paddingVertical:11,borderRadius:14,borderWidth:1,borderColor:selected===id?C.blue:C.line,backgroundColor:selected===id?C.blue:C.white}}><Txt lang={lang} weight='900' style={{color:selected===id?C.white:C.ink,fontSize:15}}>{tr(lang,ar,en,es)}</Txt></Pressable>)}</ChipRow>
  {loading?<Card><Txt lang={lang}>{tr(lang,'جاري التحميل من الموقع','Loading from website','Cargando del sitio web')}</Txt></Card>:null}
  {error&&!data?<Card><Txt lang={lang} style={{color:C.red}}>{tr(lang,'لا تتوفر نسخة محمّلة لهذا الدليل. اتصل بالإنترنت.','This guide has not been downloaded. Connect to the internet.','Esta guía no se ha descargado. Conéctate a internet.')}</Txt></Card>:null}
  {data?<Card style={{gap:12}}><ServerContent value={data} lang={lang}/></Card>:null}

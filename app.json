@@ -9,7 +9,7 @@
     "scheme": "answerforu",
     "android": {
       "package": "com.answerforu.app",
-      "versionCode": 18,
+      "versionCode": 19,
       "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {

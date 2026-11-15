@@ -1,7 +1,7 @@
 import React,{useState} from "react";
 import { View,StyleSheet } from "react-native";
 import { api } from "../api/client";
-import { AirmailFrame,AirmailStripe,BrandMark,Btn,Field,Icon,LangSwitch,Postmark,Screen,SectionHero,Stamp,Txt } from "../components/UI";
+import { AirmailFrame,AirmailStripe,BrandMark,Btn,Field,Icon,LangBar,LangSwitch,Postmark,Screen,SectionHero,Stamp,Txt } from "../components/UI";
 import { Pressable } from "react-native";
 import GoogleButton from "../auth/GoogleButton";
 import { C } from "../theme";
@@ -18,9 +18,12 @@ export default function AuthScreen({lang,onAuth,onLang,onSetLang,onBrowse}){
       const data=mode==='login'?await api.login(email.trim(),password):await api.register(username.trim(),email.trim(),password);await onAuth(data);
     }catch(e){setError(friendlyError(e,lang))}finally{setBusy(false)}
   }
-  return <Screen lang={lang} contentStyle={st.page}>
-    <View style={st.langRow}><LangSwitch lang={lang} onSet={onSetLang||(()=>onLang?.())}/></View>
-    <SectionHero variant="blue" compact lang={lang} icon="send" eyebrow={`AnswerForU · v${APP_VERSION}`} title={T('حياتك في أمريكا بسهولة','Your U.S. life made simple','Tu vida en EE. UU. más fácil')} subtitle={T('كل خطواتك في مكان واحد','Everything you need in one place','Todo lo que necesitas en un lugar')}>
+  // Same full-bleed language bar as every other screen (sits outside the padded page).
+  // The build version is kept for QA as a testID only — it is no longer shown to users.
+  return <View style={st.root} testID={`auth-v${APP_VERSION}`}>
+    <LangBar><LangSwitch lang={lang} onSet={onSetLang||(()=>onLang?.())}/></LangBar>
+    <Screen lang={lang} contentStyle={st.page}>
+    <SectionHero variant="blue" compact lang={lang} icon="send" eyebrow={T('أهلاً بيك في AnswerForU','Welcome to AnswerForU','Bienvenido a AnswerForU')} title={T('حياتك في أمريكا بسهولة','Your U.S. life made simple','Tu vida en EE. UU. más fácil')} subtitle={T('كل خطواتك في مكان واحد','Everything you need in one place','Todo lo que necesitas en un lugar')}>
       <View style={st.envelope}><AirmailFrame radius={12} thickness={6} contentStyle={st.envInner}><Stamp style={st.envStamp}><BrandMark size={34}/></Stamp><Postmark size={40}/><View style={{flex:1,gap:6,alignSelf:"flex-end",paddingBottom:6}}>{[1,.8,.6].map((w,i)=><View key={i} style={[st.envLine,{width:`${w*100}%`}]}/>)}</View></AirmailFrame></View>
     </SectionHero>
     <AirmailFrame thickness={8} contentStyle={{gap:13,padding:18}}>
@@ -40,6 +43,6 @@ export default function AuthScreen({lang,onAuth,onLang,onSetLang,onBrowse}){
       <View style={st.footer}>{mode==='login'?<Btn lang={lang} variant="ghost" title={T('ليس لديك حساب؟ سجل الآن','No account? Register now','¿Sin cuenta? Regístrate')} onPress={()=>{setMode('register');setError('');setNotice('')}}/>:null}<Btn lang={lang} title={T('تصفح بدون حساب','Browse without an account','Explorar sin cuenta')} variant="light" onPress={onBrowse}/></View>
     </AirmailFrame>
     <Btn lang={lang} icon="globe" title={T(`اللغة: ${lang.toUpperCase()} — تغيير`,`Language: ${lang.toUpperCase()} — Change`,`Idioma: ${lang.toUpperCase()} — Cambiar`)} onPress={onLang} variant="ghost"/>
-  </Screen>;
+  </Screen></View>;
 }
-const st=StyleSheet.create({page:{paddingTop:12,gap:16,paddingBottom:32,width:"100%",maxWidth:520,alignSelf:"center"},langRow:{backgroundColor:C.navy,borderRadius:999,paddingHorizontal:10,paddingVertical:6,alignSelf:"stretch",flexDirection:"row",justifyContent:"center"},envelope:{marginTop:6,transform:[{rotate:"-3deg"}]},envInner:{flexDirection:"row",alignItems:"center",gap:8,padding:12,minHeight:96,direction:"ltr"},envStamp:{padding:4,backgroundColor:"#FFFFFF",borderRadius:3},envLine:{height:3,borderRadius:2,backgroundColor:C.dash},backLink:{flexDirection:"row",alignItems:"center",gap:6,alignSelf:"flex-start"},brand:{fontSize:29,color:C.navy},version:{color:C.muted},hello:{gap:6,paddingTop:2,paddingBottom:4},orRow:{flexDirection:"row",alignItems:"center",gap:10},orLine:{flex:1,height:1,backgroundColor:C.line},modeRow:{flexDirection:'row',gap:8},footer:{marginTop:4,marginHorizontal:-18,marginBottom:-18,padding:14,gap:8,backgroundColor:C.sand,borderBottomLeftRadius:14,borderBottomRightRadius:14},error:{padding:12,backgroundColor:C.dangerBg,borderRadius:12},success:{padding:12,backgroundColor:C.successBg,borderRadius:12}});
+const st=StyleSheet.create({root:{flex:1,backgroundColor:C.bg},page:{paddingTop:12,gap:16,paddingBottom:32,width:"100%",maxWidth:520,alignSelf:"center"},langRow:{backgroundColor:C.navy,borderRadius:999,paddingHorizontal:10,paddingVertical:6,alignSelf:"stretch",flexDirection:"row",justifyContent:"center"},envelope:{marginTop:6,transform:[{rotate:"-3deg"}]},envInner:{flexDirection:"row",alignItems:"center",gap:8,padding:12,minHeight:96,direction:"ltr"},envStamp:{padding:4,backgroundColor:C.white,borderRadius:3},envLine:{height:3,borderRadius:2,backgroundColor:C.dash},backLink:{flexDirection:"row",alignItems:"center",gap:6,alignSelf:"flex-start"},brand:{fontSize:29,color:C.navy},version:{color:C.muted},hello:{gap:6,paddingTop:2,paddingBottom:4},orRow:{flexDirection:"row",alignItems:"center",gap:10},orLine:{flex:1,height:1,backgroundColor:C.line},modeRow:{flexDirection:'row',gap:8},footer:{marginTop:4,marginHorizontal:-18,marginBottom:-18,padding:14,gap:8,backgroundColor:C.sand,borderBottomLeftRadius:14,borderBottomRightRadius:14},error:{padding:12,backgroundColor:C.dangerBg,borderRadius:12},success:{padding:12,backgroundColor:C.successBg,borderRadius:12}});

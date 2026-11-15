@@ -1,0 +1,53 @@
+AnswerForU vc18 FIX ROUND — grep proofs (generated 2026-11-14T22:21Z from this exact source tree)
+
+1) Hex colour literals outside src/theme.js (App.js + src/, .js/.mjs). Expected: 0
+$ grep -rnoE "#[0-9A-Fa-f]{3,8}\b" App.js src --include=*.js --include=*.mjs | grep -v "^src/theme.js" | wc -l
+0
+   (vc18 base: 224 outside theme.js, 270 total, 40 unique values)
+   Hex values now defined in theme.js (the only place): 31 unique
+
+2) "Community Picks" — every occurrence. Expected: only the English argument of a 3-language tr() call
+$ grep -rn "Community Picks" App.js src
+src/components/ResourceCards.js:37:"مختارات مجتمع AnswerForU", "AnswerForU Community Picks", "Selecciones de la comunidad AnswerForU")}</Txt><Txt lang
+$ grep -rnE ">\s*AnswerForU Community Picks\s*<" App.js src | wc -l   (hard-coded JSX text)
+0
+
+3) The 7 English proof-type labels — every occurrence. Expected: only inside [key, ar, en, es] tuples rendered via tr()
+src/data/website/glossary.json:1:ug":"state-id","term":"State ID","category":"identity","defini
+src/screens/VerificationScreen.js:10:te_id","هوية الولاية","State ID","Identificación estatal"],["d
+src/screens/VerificationScreen.js:10:cense","رخصة القيادة","Driver License","Licencia de conducir"],["pas
+src/screens/VerificationScreen.js:10:assport","جواز السفر","Passport","Pasaporte"],["work_license",
+src/screens/VerificationScreen.js:10:icense","تصريح العمل","Work License","Permiso de trabajo"],["busin
+src/screens/VerificationScreen.js:10:stration","سجل تجاري","Business Registration","Registro comercial"],["profe
+src/screens/VerificationScreen.js:10:license","رخصة مهنية","Professional License","Licencia profesional"],["oth
+src/screens/VerificationScreen.js:10:nal"],["other","أخرى","Other","Otro"]];
+$ grep -nE "\[\"[a-z_]+\",\"(State ID|Driver License|Passport|Work License|Business Registration|Professional License|Other)\"\]" src/screens/VerificationScreen.js | wc -l   (old 2-tuple English-only form)
+0
+$ grep -n "{label}" src/screens/VerificationScreen.js | wc -l ; grep -n "status?.status||\"none\"" src/screens/VerificationScreen.js | wc -l
+0
+0
+
+4) Raw source_type / type rendering. Expected: 0 raw renders; sourceLabel() at both sites
+$ grep -rnE "\{(x|item|selected|r)\.(source_type|type)\}" src | wc -l
+0
+$ grep -rnE "\{item\.type\|\|item\.source_type\|\|\"\"\}" src | wc -l
+0
+src/screens/AdminScreen.js:40:sourceLabel(item.type||item.source_type,lang)
+src/screens/MyRequestsScreen.js:28:sourceLabel(x.source_type,lang)
+
+5) Spanish in resourceConfig.js (21 categories + 4 groups). Expected: ar 25 / en 25 / es 25
+ar: 25
+en: 25
+es: 25
+
+6) Type floor — literal font sizes below 12px. Expected: 0
+0
+
+7) User-facing version strings removed
+$ grep -n "{WEB_CONTENT_VERSION}" src/screens/OfflinePacksScreen.js | wc -l
+0
+$ grep -n "eyebrow={\`AnswerForU · v" src/screens/AuthScreen.js | wc -l
+0
+
+8) BottomNav special case. Expected: 0
+0

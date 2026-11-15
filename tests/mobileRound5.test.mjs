@@ -13,7 +13,7 @@ const config=JSON.parse(read('app.json')).expo;
 test('website-themed version 3.7.0, code 18, Android ID and no SDK/permission expansion',()=>{
  const pkg=JSON.parse(read('package.json'));
  assert.equal(pkg.version,'3.7.0'); assert.equal(config.version,'3.7.0');
- assert.equal(config.android.versionCode,18);assert.equal(config.android.package,'com.answerforu.app');
+ assert.equal(config.android.versionCode,19);assert.equal(config.android.package,'com.answerforu.app');
  assert.equal(config.extra.webMasterVersion,'6.3.9');
  for(const s of ['ads','analytics','firebase','amplitude','sentry'])assert.ok(!Object.keys(pkg.dependencies||{}).some(x=>x.toLowerCase().includes(s)),s);
  assert.equal(config.plugins.length,5);

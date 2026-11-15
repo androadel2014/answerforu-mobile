@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
 import {ScrollView,Pressable,View} from 'react-native';
 import {api,rows} from '../api/client';
-import {Btn,Card,Empty,Field,Loading,Screen,Txt} from '../components/UI';
+import {ErrorNotice,ChipRow,Btn,Card,Empty,Field,Loading,Screen,Txt} from '../components/UI';
 import {C} from '../theme';
 import {tr} from '../i18n';
 import {friendlyError} from '../logic/appSafety.mjs';
@@ -36,8 +36,8 @@ export default function AdminManageScreen({lang,user,back}){
  if(!isAdmin)return <Screen lang={lang}><Empty lang={lang} title={label('الحساب ده مش أدمن.','Admin access required.','Se requiere acceso de administrador.')} onRetry={back}/></Screen>;
  return <Screen lang={lang} contentStyle={{gap:12}}><Btn lang={lang} variant="ghost" title={label('‹ رجوع للإدارة','‹ Back to admin','‹ Volver a administración')} onPress={back}/>
   <Txt lang={lang} style={{fontSize:25}} weight="900">{label('إدارة المحتوى والبلاغات','Manage content and reports','Gestionar contenido e informes')}</Txt>
-  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{flexGrow:0}} contentContainerStyle={{gap:7,paddingVertical:3}}>{sections.map(([key,ar,en,es])=><Pressable key={key} onPress={()=>setSection(key)} style={{paddingHorizontal:14,paddingVertical:12,backgroundColor:section===key?C.blue:'#fff',borderWidth:1,borderColor:section===key?C.blue:C.line,borderRadius:14}}><Txt lang={lang} weight="800" style={{color:section===key?'#fff':C.ink}}>{label(ar,en,es)}</Txt></Pressable>)}</ScrollView>
-  {error?<Card style={{backgroundColor:C.dangerBg,gap:7}}><Txt lang={lang} style={{color:C.red}}>{error}</Txt><Btn lang={lang} title={label('حاول تاني','Retry','Reintentar')} onPress={load} variant="light"/></Card>:null}
+  <ChipRow lang={lang} contentStyle={{paddingVertical:3}}>{sections.map(([key,ar,en,es])=><Pressable key={key} onPress={()=>setSection(key)} style={{paddingHorizontal:14,paddingVertical:12,backgroundColor:section===key?C.blue:C.white,borderWidth:1,borderColor:section===key?C.blue:C.line,borderRadius:14}}><Txt lang={lang} weight="800" style={{color:section===key?C.white:C.ink}}>{label(ar,en,es)}</Txt></Pressable>)}</ChipRow>
+  {error?<ErrorNotice lang={lang} message={error} onRetry={load} retryLabel={label('حاول تاني','Retry','Reintentar')}/>:null}
   {notice?<Card style={{backgroundColor:C.successBg}}><Txt lang={lang} style={{color:C.green}}>{notice}</Txt></Card>:null}
   {canEdit?<Card style={{gap:10}}><Txt lang={lang} weight="900" style={{fontSize:20}}>{selected?label('تعديل','Edit','Editar'):label('إضافة جديدة','Add new','Añadir nuevo')}</Txt>{editingFields[section].map(k=><Field key={k} lang={lang} label={local(lang,...(labels[k]||[k,k,k]))} value={form[k]||''} onChangeText={v=>setForm(f=>({...f,[k]:v}))} multiline={['description','definition_ar','definition_en','definition_es','example_ar','example_en','example_es'].includes(k)}/>)}<Btn lang={lang} title={busy?label('جاري الحفظ…','Saving…','Guardando…'):label('حفظ','Save','Guardar')} disabled={busy} variant="blue" onPress={submit}/>{selected?<Btn lang={lang} variant="light" title={label('إلغاء التعديل','Cancel editing','Cancelar edición')} onPress={()=>{setSelected(null);setForm(blank(section))}}/>:null}</Card>:null}
   <Txt lang={lang} weight="900" style={{fontSize:20}}>{label('الموجود حاليًا','Current items','Elementos actuales')} · {items.length}</Txt>

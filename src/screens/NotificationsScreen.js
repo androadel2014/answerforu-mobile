@@ -1,7 +1,7 @@
 import React,{useCallback,useEffect,useState}from'react';
 import {View} from 'react-native';
 import {api,rows}from'../api/client';
-import {Btn,Card,Empty,Loading,Screen,Txt,SectionHero}from'../components/UI';
+import {ErrorNotice,Btn,Card,Empty,Loading,Screen,Txt,SectionHero}from'../components/UI';
 import {C}from'../theme';import{tr}from'../i18n';
 import {friendlyError}from'../logic/appSafety.mjs';
 import{optInForDeviceNotifications}from'../services/pushGroundwork';
@@ -14,7 +14,7 @@ export default function NotificationsScreen({lang,navigate}){
  return <Screen lang={lang}><SectionHero compact lang={lang} icon="bell" title={T('الإشعارات','Notifications','Notificaciones')} subtitle={T('تابع الجديد وحدد اللي قريته.','Keep up with updates and mark items read.','Revisa las novedades y márcalas como leídas.')}/>
  <Btn lang={lang} variant="light" title={T('تفعيل إشعارات الجهاز','Enable device notifications','Activar notificaciones')} onPress={enable}/>{pushMessage?<Txt lang={lang}>{pushMessage}</Txt>:null}
  <Btn lang={lang} variant="blue" disabled={busy} title={T('علّم الكل كمقروء','Mark all read','Marcar todo leído')} onPress={()=>change(api.markAllNotifications)}/>
- {error?<Card><Txt lang={lang} style={{color:C.red}}>{error}</Txt><Btn lang={lang} title={T('جرّب تاني','Retry','Reintentar')} onPress={load}/></Card>:null}
- {loading?<Loading lang={lang}/>:items.length?items.map((x,i)=><Card key={x.id||i} style={{gap:8,backgroundColor:x.read||x.is_read?C.card:C.highlight}}><Txt lang={lang} weight="900">{x.title||T('إشعار','Notification','Notificación')}</Txt><Txt lang={lang} style={{color:C.muted}}>{x.description||x.desc||x.message||''}</Txt><View style={{flexDirection:'row',gap:8}}><View style={{flex:1}}><Btn lang={lang} title={T('قرأت','Mark read','Leído')} variant="light" disabled={busy} onPress={()=>change(()=>api.markNotification(x.id))}/></View><View style={{flex:1}}><Btn lang={lang} title={T('حذف','Delete','Eliminar')} variant="danger" disabled={busy} onPress={()=>change(()=>api.deleteNotification(x.id))}/></View></View></Card>):<Empty lang={lang} title={T('كله تمام!','All caught up!','¡Todo al día!')} body={T('الإشعارات الجديدة هتظهر هنا.','New updates will appear here.','Las novedades aparecerán aquí.')} onRetry={load}/>}
+ {error?<ErrorNotice lang={lang} message={error} onRetry={load} retryLabel={T('جرّب تاني','Retry','Reintentar')}/>:null}
+ {loading?<Loading lang={lang}/>:items.length?items.map((x,i)=><Card key={x.id||i} style={{gap:8,backgroundColor:x.read||x.is_read?C.card:C.highlight}}><Txt lang={lang} weight="900">{x.title||T('إشعار','Notification','Notificación')}</Txt><Txt lang={lang} style={{color:C.muted}}>{x.description||x.desc||x.message||''}</Txt><View style={{flexDirection:'row',gap:8}}><View style={{flex:1}}><Btn lang={lang} title={T('قرأت','Mark read','Leído')} variant="light" disabled={busy} onPress={()=>change(()=>api.markNotification(x.id))}/></View><View style={{flex:1}}><Btn lang={lang} title={T('حذف','Delete','Eliminar')} variant="danger" disabled={busy} onPress={()=>change(()=>api.deleteNotification(x.id))}/></View></View></Card>):error?null:<Empty lang={lang} title={T('كله تمام!','All caught up!','¡Todo al día!')} body={T('الإشعارات الجديدة هتظهر هنا.','New updates will appear here.','Las novedades aparecerán aquí.')} onRetry={load}/>}
  </Screen>;
 }
