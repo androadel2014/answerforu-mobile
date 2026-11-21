@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { C } from "../theme";
+import { C, themed } from "../theme";
 import { APP_VERSION } from "../config";
 import { tr } from "../i18n";
 import { BrandMark, Icon, LangBar, LangSwitch, Wordmark } from "./Airmail";
@@ -21,10 +21,10 @@ export default function AppHeader({ lang, user, onProfile, onNotifications, onLa
       </View>
       <View style={st.actions}>
         {user ? <Pressable accessibilityRole="button" accessibilityLabel={tr(lang, "الإشعارات", "Notifications", "Notificaciones")} onPress={onNotifications} style={st.bell} hitSlop={4}>
-          <Icon name="bell" size={19} color={C.navy} /><View style={st.bellDot} />
+          <Icon name="bell" size={19} color={C.ink} /><View style={st.bellDot} />
         </Pressable> : null}
         <Pressable accessibilityRole="button" accessibilityLabel={user ? tr(lang, "حسابي", "My account", "Mi cuenta") : tr(lang, "دخول", "Sign in", "Entrar")} onPress={onProfile} style={st.account}>
-          {user ? <View style={st.avatar}><Text style={st.avatarText}>{initial}</Text></View> : <Icon name="user" size={17} color={C.navy} />}
+          {user ? <View style={st.avatar}><Text style={st.avatarText}>{initial}</Text></View> : <Icon name="user" size={17} color={C.onGold} />}
           <Text numberOfLines={1} style={st.accountText}>{user ? tr(lang, "حسابي", "Account", "Cuenta") : tr(lang, "دخول", "Sign in", "Entrar")}</Text>
         </Pressable>
       </View>
@@ -32,7 +32,7 @@ export default function AppHeader({ lang, user, onProfile, onNotifications, onLa
     <View style={st.rule} />
   </View>;
 }
-const st = StyleSheet.create({
+const st = themed(() => StyleSheet.create({
   shell: { backgroundColor: C.paper },
   wrap: { minHeight: 66, paddingHorizontal: 14, paddingVertical: 9, backgroundColor: C.paper, flexDirection: "row", alignItems: "center", gap: 10 },
   logoMark: { width: 42, height: 42, alignItems: "center", justifyContent: "center" },
@@ -43,6 +43,6 @@ const st = StyleSheet.create({
   account: { minHeight: 42, borderRadius: 999, backgroundColor: C.gold, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 7, maxWidth: 140 },
   avatar: { width: 26, height: 26, borderRadius: 13, backgroundColor: C.navy, alignItems: "center", justifyContent: "center" },
   avatarText: { color: C.gold, fontWeight: "900", fontSize: 13 },
-  accountText: { color: C.navy, fontWeight: "900", fontSize: 15, flexShrink: 1 },
+  accountText: { color: C.onGold, fontWeight: "900", fontSize: 15, flexShrink: 1 },
   rule: { height: 1, backgroundColor: C.line }
-});
+}));

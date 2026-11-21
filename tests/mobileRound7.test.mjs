@@ -11,7 +11,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const walk=d=>fs.readdirSync(path.join(root,d)).flatMap(f=>{const p=path.join(d,f);return fs.statSync(path.join(root,p)).isDirectory()?walk(p):/\.m?js$/.test(f)?[p]:[]});
 const SRC=[...walk('src'),'App.js'];
-const theme=()=>new Function(read('src/theme.js').replace(/^export /gm,'')+';return {C,palette,type,radius,shadow,spacing,tints};')();
+const theme=()=>new Function(read('src/theme.js').replace(/^export /gm,'')+';return {C,palette,type,radius,shadow,spacing,tints,themed,signPalette,setColorScheme,resolveScheme,colorScheme};')();
 const i18n=()=>new Function(read('src/i18n.js').replace(/^export /gm,'')+';return {tr,sourceLabel};')();
 function lum(h){const n=h.replace('#','');return [0,2,4].map(i=>parseInt(n.slice(i,i+2),16)/255).map(c=>c<=.03928?c/12.92:((c+.055)/1.055)**2.4).reduce((a,c,i)=>a+c*[.2126,.7152,.0722][i],0)}
 const ratio=(a,b)=>{const[x,y]=[lum(a),lum(b)].sort((p,q)=>q-p);return (x+.05)/(y+.05)};
@@ -97,6 +97,8 @@ function load(file,extra={}){
   if(id.includes('theme'))return theme();if(id.endsWith('i18n'))return {...i18n(),isRTL:l=>l==='ar',normalizeLang:l=>l};
   if(id==='./Airmail'||id.includes('components/UI')){const n=id==='./Airmail'?'src/components/Airmail.js':'src/components/UI.js';return cache[n]||(cache[n]=load(n,extra).module.exports)}
   if(id.startsWith('@expo/vector-icons'))throw Error('no icons in test');
+  // 3.7.1: pure logic modules (bidi isolation, dates, …) are loaded as they are.
+  if(/\/logic\/[\w.-]+\.mjs$/.test(id)){const n=path.join(path.dirname(file),id);return cache[n]||(cache[n]=load(n,extra).module.exports)}
   throw Error('Unexpected import '+id+' in '+file);
  };
  const module={exports:{}};new Function('require','module','exports',code)(fake,module,module.exports);

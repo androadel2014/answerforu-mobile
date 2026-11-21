@@ -1,3 +1,5 @@
+> ⚠ **Superseded (mobile 3.7.1):** website v6.4.2 already contains everything in this overlay (both content keys, both static JSON files and the Google mobile route). Do **not** copy this `index.php` over a v6.4.x server — it is a v6.3.7 file and would undo the v6.4.2 tester fixes (password policy, hosted currency photos, exports).
+
 # Website deployment overlay — APP-ROUND4
 
 Baseline: AnswerForU website v6.3.7. This folder contains only a **backward-compatible** new read-only API content key.

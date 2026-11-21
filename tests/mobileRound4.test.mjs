@@ -9,10 +9,10 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const data=p=>JSON.parse(read(p));
 const app=data('app.json');
-test('v3.7.0 / code18 / com.answerforu.app / web6.3.9 match',()=>{
- assert.equal(app.expo.version,'3.7.0');assert.equal(app.expo.android.versionCode,19);
- assert.equal(app.expo.android.package,'com.answerforu.app');assert.equal(app.expo.extra.webMasterVersion,'6.3.9');
- assert.equal(data('package.json').version,'3.7.0');
+test('v3.7.1 / code20 / com.answerforu.app / web6.4.2 match (tester-fix release; was 3.7.0 / 19 / 6.3.9)',()=>{
+ assert.equal(app.expo.version,'3.7.1');assert.equal(app.expo.android.versionCode,20);
+ assert.equal(app.expo.android.package,'com.answerforu.app');assert.equal(app.expo.extra.webMasterVersion,'6.4.2');
+ assert.equal(data('package.json').version,'3.7.1');
 });
 test('website civic banks preserve counts 100 / 128 and authoritative dataset',()=>{
  const banks=data('WEBSITE-DEPLOY/public/api/content-static/citizenship-vocabulary.json');
@@ -60,7 +60,8 @@ test('guest journey screen is protected by an error boundary and guest read-only
  assert.match(read('src/components/ScreenErrorBoundary.js'),/componentDidCatch/);
 });
 test('roadmap details access seven independent full-depth website APIs',()=>{
- const source=read('src/components/RoadmapDeepDetails.js');
+ // 3.7.1 (tester item 5): the seven datasets are still read, then merged once in logic/stepGuide.mjs.
+ const source=read('src/components/RoadmapDeepDetails.js')+read('src/logic/stepGuide.mjs');
  for(const name of ['roadmap-guide-locales','roadmap-guides','roadmap-actions','roadmap-warnings-locales','roadmap-warnings-ar','roadmap-costs','roadmap-effort'])assert.ok(source.includes(name),name);
 });
 test('first-load content is API first, offline only previously downloaded snapshots',()=>{

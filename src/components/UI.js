@@ -1,7 +1,8 @@
 import React, { createContext, forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { C, radius, shadow, spacing, type } from "../theme";
+import { C, radius, shadow, spacing, type, themed } from "../theme";
 import { isRTL } from "../i18n";
+import { isolateForRtl } from "../logic/bidi.mjs";
 import { AirmailDashes, AirmailFrame, AirmailStripe, BrandMark, EmptyArt, Icon, Postmark, Stamp, fwdIcon } from "./Airmail";
 export * from "./Airmail";
 
@@ -103,13 +104,24 @@ export function Screen({ children, lang = "ar", scroll = true, refreshing = fals
 
 // `balanced` asks the platform for balanced line breaks (Android textBreakStrategy, iOS standard
 // line-break strategy) so headlines never end on a single-word orphan line.
-export function Txt({ children, lang = "ar", style, weight = "600", numberOfLines, floor = type.body, balanced = false }) {
+// 3.7.1 (tester items 6 + 13): Arabic text is laid out right-to-left on Android too (Android has no
+// writingDirection), and English words, codes and amounts inside it (N-400, SSN, $100 bill, W-2/1099)
+// keep their own left-to-right order instead of flipping the sentence around them.
+const plainText = (children) => (typeof children === "string" ? children
+  : Array.isArray(children) && children.every((c) => c == null || typeof c === "string" || typeof c === "number" || typeof c === "boolean")
+    ? children.filter((c) => c != null && typeof c !== "boolean").join("") : null);
+export function bidiChildren(children, lang) {
+  if (!isRTL(lang)) return children;
+  const text = plainText(children);
+  return text == null ? children : isolateForRtl(text);
+}
+export function Txt({ children, lang = "ar", style, weight = "600", numberOfLines, floor = type.body, balanced = false, selectable }) {
   const flattened = StyleSheet.flatten(style) || {};
   // Do not let legacy micro-fonts shrink body text (default floor 16). Compact chips, eyebrows and
   // meta lines may opt into a lower floor, but never below the app-wide type floor (12px).
   const minSize = Math.max(type.minText, Number(floor) || type.body);
   const fontSize = Math.max(minSize, Number(flattened.fontSize) || type.body);
-  return <Text numberOfLines={numberOfLines} textBreakStrategy={balanced ? "balanced" : undefined} lineBreakStrategyIOS={balanced ? "standard" : undefined} style={[s.text, { fontWeight: weight, textAlign: isRTL(lang) ? "right" : "left", writingDirection: isRTL(lang) ? "rtl" : "ltr" }, style, {fontSize, lineHeight: Math.max(fontSize * 1.32, Number(flattened.lineHeight) || 0)}]}>{children}</Text>;
+  return <Text selectable={selectable} numberOfLines={numberOfLines} textBreakStrategy={balanced ? "balanced" : undefined} lineBreakStrategyIOS={balanced ? "standard" : undefined} style={[s.text, { fontWeight: weight, textAlign: isRTL(lang) ? "right" : "left", writingDirection: isRTL(lang) ? "rtl" : "ltr" }, style, {fontSize, lineHeight: Math.max(fontSize * 1.32, Number(flattened.lineHeight) || 0)}]}>{bidiChildren(children, lang)}</Text>;
 }
 
 // Shared horizontal chip / tab / filter row (fix round). One pattern for every screen:
@@ -135,6 +147,16 @@ export function ChipRow({ lang = "ar", children, wrap = false, gap = 7, style, c
   </ScrollView>;
 }
 
+// 3.7.1 (tester item 6): numbered rows use a round badge with the digit only, so Arabic lists never
+// show ".1" / ".2", and the badge sits on the reading side (right in Arabic) via the row direction.
+export function NumBadge({ n, tone = "royal", size = 26 }) {
+  const bg = tone === "gold" ? C.goldSoft : tone === "red" ? C.redSoft : C.royalSoft;
+  const fg = tone === "gold" ? C.goldDark : tone === "red" ? C.redInk : C.blue;
+  return <View accessibilityElementsHidden importantForAccessibility="no" style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+    <Text style={{ color: fg, fontWeight: "900", fontSize: Math.max(type.minText, Math.round(size * .5)), textAlign: "center" }}>{String(n)}</Text>
+  </View>;
+}
+
 export function Card({ children, style, dark = false }) {
   // Dark cards are page "letters": navy with the airmail edge across the top.
   return <View style={[s.card, dark && s.cardDark, style]}>{dark ? <View pointerEvents="none" style={s.cardDarkStripe}><AirmailStripe height={6} bg={C.navy} /></View> : null}{children}</View>;
@@ -148,13 +170,14 @@ export function Pill({ children, style, dark = false }) {
 export function Btn({ title, onPress, variant = "dark", disabled = false, style, lang = "ar", icon }) {
   const variants = {
     dark: { backgroundColor: C.navy, borderColor: C.navy, borderBottomColor: C.navy2 },
-    light: { backgroundColor: C.paper, borderColor: C.navy, borderBottomColor: C.navy },
+    light: { backgroundColor: C.paper, borderColor: C.outline, borderBottomColor: C.outline },
     blue: { backgroundColor: C.royal, borderColor: C.royal, borderBottomColor: C.royalDark },
     gold: { backgroundColor: C.gold, borderColor: C.gold, borderBottomColor: C.goldDeep },
     danger: { backgroundColor: C.redSoft, borderColor: C.redLine, borderBottomColor: C.redLine },
     ghost: { backgroundColor: "transparent", borderColor: "transparent", borderBottomColor: "transparent" }
   };
-  const textColor = variant === "dark" || variant === "blue" ? C.white : variant === "danger" ? C.red : variant === "ghost" ? C.royal : C.navy;
+  // 3.7.1 dark mode: role tokens — white on navy/royal, navy on gold (both appearances), ink on paper.
+  const textColor = variant === "dark" || variant === "blue" ? C.onDark : variant === "danger" ? C.redInk : variant === "ghost" ? C.blue : variant === "gold" ? C.onGold : C.ink;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={typeof title === "string" ? title : undefined} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.btn, variants[variant] || variants.dark, variant === "ghost" && { borderBottomWidth: 0 }, style, disabled && { opacity: .45 }, pressed && !disabled && { transform: [{ translateY: 1.5 }], borderBottomWidth: 1.5 }]}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -190,7 +213,7 @@ export function Field({ label, value, onChangeText, placeholder, secureTextEntry
 }
 
 export function Loading({ lang = "ar", label }) {
-  return <View style={s.center}><ActivityIndicator size="small" color={C.royal} /><Txt lang={lang} style={{ color: C.muted, marginTop: 10 }}>{label || (isRTL(lang) ? "جاري التحميل..." : lang === "es" ? "Cargando..." : "Loading...")}</Txt></View>;
+  return <View style={s.center}><ActivityIndicator size="small" color={C.blue} /><Txt lang={lang} style={{ color: C.muted, marginTop: 10 }}>{label || (isRTL(lang) ? "جاري التحميل..." : lang === "es" ? "Cargando..." : "Loading...")}</Txt></View>;
 }
 
 // ONE error surface per screen (fix round). Screens render <ErrorNotice> instead of ad-hoc red
@@ -205,8 +228,8 @@ export function ErrorNotice({ lang = "ar", message, onRetry, retryLabel, action,
   const retry = retryLabel || (lang === "ar" ? "جرّب تاني" : lang === "es" ? "Reintentar" : "Try again");
   return <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={[s.errorCard, style]}>
     <View style={s.errorHead}>
-      <View style={s.errorIcon}><Icon name="alert-circle" size={18} color={C.red} /></View>
-      <Txt lang={lang} weight="800" style={{ color: C.navy, flex: 1, lineHeight: 23 }}>{String(message)}</Txt>
+      <View style={s.errorIcon}><Icon name="alert-circle" size={18} color={C.redInk} /></View>
+      <Txt lang={lang} weight="800" style={{ color: C.ink, flex: 1, lineHeight: 23 }}>{String(message)}</Txt>
     </View>
     {onRetry || action ? <View style={s.errorActions}>
       {onRetry ? <Btn lang={lang} icon="refresh-cw" variant="light" title={retry} onPress={onRetry} style={{ flexGrow: 1 }} /> : null}
@@ -222,15 +245,15 @@ export function Empty({ lang = "ar", title, body, onRetry, action, art }) {
   return <View style={s.empty}>
     <AirmailStripe height={6} style={{ alignSelf: "stretch", marginTop: -1 }} />
     {art ? <View style={{ marginTop: 16, marginBottom: 2, alignSelf: "stretch" }}><EmptyArt kind={art} /></View> : <View style={s.stampFan}>{[["mail", "-8deg", 0], ["star", "0deg", 1], ["map-pin", "8deg", 2]].map(([n, r, t]) =>
-      <Stamp key={n} style={{ width: 62, height: 70, padding: 0, alignItems: "center", justifyContent: "center", transform: [{ rotate: r }], marginHorizontal: -3 }}><Icon name={n} size={24} color={[C.royal, C.goldDark, C.red][t]} /></Stamp>)}</View>}
-    <Txt lang={lang} weight="900" style={{ fontSize: 21, textAlign: "center", color: C.navy, paddingHorizontal: 16 }}>{title}</Txt>
+      <Stamp key={n} style={{ width: 62, height: 70, padding: 0, alignItems: "center", justifyContent: "center", transform: [{ rotate: r }], marginHorizontal: -3 }}><Icon name={n} size={24} color={[C.blue, C.goldDark, C.redInk][t]} /></Stamp>)}</View>}
+    <Txt lang={lang} weight="900" style={{ fontSize: 21, textAlign: "center", color: C.ink, paddingHorizontal: 16 }}>{title}</Txt>
     {body ? <Txt lang={lang} style={{ color: C.muted, textAlign: "center", lineHeight: 24, paddingHorizontal: 18 }}>{body}</Txt> : null}
     {onRetry ? <Btn lang={lang} icon="refresh-cw" title={lang === "ar" ? "جرّب تاني" : lang === "es" ? "Reintentar" : "Try again"} onPress={onRetry} variant="blue" style={{ alignSelf: "center", minWidth: 180, marginTop: 6 }} /> : null}
     {action ? <Btn lang={lang} icon={action.icon || "plus"} title={action.title} onPress={action.onPress} variant="blue" style={{ alignSelf: "center", minWidth: 210, marginTop: 6 }} /> : null}
   </View>;
 }
 
-export const s = StyleSheet.create({
+export const s = themed(() => StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 18, gap: 16, paddingBottom: 40 },
   text: { color: C.ink, fontSize: 16, lineHeight: 24 },
@@ -240,7 +263,7 @@ export const s = StyleSheet.create({
   pill: { alignSelf: "flex-start", borderWidth: 1, borderColor: C.royalLine, backgroundColor: C.royalSoft, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 6 },
   btn: { minHeight: 52, borderWidth: 1.5, borderBottomWidth: 4, borderRadius: 14, paddingHorizontal: 18, alignItems: "center", justifyContent: "center" },
   input: { width: "100%", minHeight: 54, borderWidth: 1.3, borderColor: C.inputBorder, borderRadius: 13, backgroundColor: C.paper, paddingHorizontal: 16, color: C.ink, fontSize: 16 },
-  inputFocus: { backgroundColor: C.white, borderColor: C.royal, borderWidth: 2 },
+  inputFocus: { backgroundColor: C.surface, borderColor: C.royal, borderWidth: 2 },
   emptyArt: { width: 68, height: 68, borderRadius: 20, backgroundColor: C.royalSoft, alignItems: "center", justifyContent: "center", marginBottom: 5 },
   empty: { backgroundColor: C.paper, borderWidth: 1.5, borderStyle: "dashed", borderColor: C.dash, borderRadius: 20, overflow: "hidden", alignItems: "center", paddingBottom: 26, gap: 10 },
   stampFan: { flexDirection: "row", justifyContent: "center", marginTop: 18, marginBottom: 6, direction: "ltr" },
@@ -253,7 +276,7 @@ export const s = StyleSheet.create({
   chipContent: { flexGrow: 1, flexDirection: "row", alignItems: "center", paddingVertical: 2, paddingHorizontal: 1 },
   chipCell: { direction: "rtl" },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", alignSelf: "stretch", maxWidth: "100%" }
-});
+}));
 
 // Airmail section hero. Variants match the approved mockups:
 //  "cream"       – big navy title on the paper background (Learn, Marketplace, CV, sections)
@@ -266,16 +289,16 @@ export const s = StyleSheet.create({
 export function SectionHero({lang="ar",eyebrow,title,subtitle,icon="star",children,style,compact=false,variant="cream",titleSize}) {
   const isName=/^[a-z][a-z0-9-]*$/.test(String(icon||""));
   const blue=variant==="blue";
-  const eyeColor=blue?C.onDarkSoft:C.royal;
+  const eyeColor=blue?C.onDarkSoft:C.blue;
   const eyebrowRow=eyebrow||icon?<View style={heroStyles.eyebrowRow}>
-    {isName?<Icon name={icon} size={16} color={blue?C.gold:C.royal}/>:<Txt style={{color:blue?C.gold:C.royal,fontSize:16}} weight="900">{icon}</Txt>}
+    {isName?<Icon name={icon} size={16} color={blue?C.gold:C.blue}/>:<Txt style={{color:blue?C.gold:C.blue,fontSize:16}} weight="900">{icon}</Txt>}
     {eyebrow?<Txt lang={lang} style={{color:eyeColor,fontSize:14,flexShrink:1}} weight="900">{eyebrow}</Txt>:null}
   </View>:null;
   const tSize=titleSize||(compact?30:36);
-  const titleEl=<Txt lang={lang} balanced style={{color:blue?C.white:C.navy,fontSize:tSize,lineHeight:Math.round(tSize*1.33)}} weight="900">{title}</Txt>;
+  const titleEl=<Txt lang={lang} balanced style={{color:blue?C.onDark:C.ink,fontSize:tSize,lineHeight:Math.round(tSize*1.33)}} weight="900">{title}</Txt>;
   const subEl=subtitle?<Txt lang={lang} style={{color:blue?C.onDarkSoft:C.muted,lineHeight:26,fontSize:16}} weight="500">{subtitle}</Txt>:null;
   if(variant==="envelope")return <AirmailFrame style={style} contentStyle={{padding:compact?18:22,gap:12}}>
-    <View style={heroStyles.envelopeDeco}><Postmark size={46}/><Stamp style={heroStyles.miniStamp}><Icon name="send" size={22} color={C.royal}/></Stamp></View>
+    <View style={heroStyles.envelopeDeco}><Postmark size={46}/><Stamp style={heroStyles.miniStamp}><Icon name="send" size={22} color={C.blue}/></Stamp></View>
     {eyebrowRow}{titleEl}{subEl}{children}
   </AirmailFrame>;
   if(blue)return <View style={[heroStyles.blue,compact&&heroStyles.compact,style]}>
@@ -284,23 +307,23 @@ export function SectionHero({lang="ar",eyebrow,title,subtitle,icon="star",childr
     {eyebrowRow}{titleEl}{subEl}{children}
   </View>;
   if(variant==="certificate")return <View style={[heroStyles.certOuter,style]}>
-    <View pointerEvents="none" style={heroStyles.medalWrap}><View style={heroStyles.ribbonRow}><View style={[heroStyles.ribbon,{transform:[{rotate:"18deg"}]}]}/><View style={[heroStyles.ribbon,{transform:[{rotate:"-18deg"}]}]}/></View><View style={heroStyles.medal}><View style={heroStyles.medalInner}><Icon name="star" size={22} color={C.navy}/></View></View></View>
+    <View pointerEvents="none" style={heroStyles.medalWrap}><View style={heroStyles.ribbonRow}><View style={[heroStyles.ribbon,{transform:[{rotate:"18deg"}]}]}/><View style={[heroStyles.ribbon,{transform:[{rotate:"-18deg"}]}]}/></View><View style={heroStyles.medal}><View style={heroStyles.medalInner}><Icon name="star" size={22} color={C.onGold}/></View></View></View>
     <View style={[heroStyles.certInner,compact&&{padding:18}]}>{eyebrowRow}{titleEl}{subEl}{children}</View>
   </View>;
   return <View style={[heroStyles.cream,style]}>{eyebrowRow}{titleEl}{subEl}<AirmailDashes/>{children}</View>;
 }
 export function SectionHeading({lang="ar",title,caption,action,eyebrow}) {
   return <View style={{gap:4,marginTop:6,marginBottom:2}}>
-    {eyebrow?<Txt lang={lang} style={{color:C.royal,fontSize:14}} weight="900">{eyebrow}</Txt>:null}
+    {eyebrow?<Txt lang={lang} style={{color:C.blue,fontSize:14}} weight="900">{eyebrow}</Txt>:null}
     <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
-      <Txt lang={lang} style={{fontSize:24,lineHeight:32,color:C.navy,flex:1}} weight="900">{title}</Txt>
+      <Txt lang={lang} style={{fontSize:24,lineHeight:32,color:C.ink,flex:1}} weight="900">{title}</Txt>
       {action||null}
     </View>
     {caption?<Txt lang={lang} style={{color:C.muted}}>{caption}</Txt>:null}
     <View style={{flexDirection:"row",gap:5}}>{[C.airBlue,C.airRed].map((c,i)=><View key={i} style={{width:16,height:4,borderRadius:2,backgroundColor:c,transform:[{skewX:"-30deg"}]}}/>)}</View>
   </View>;
 }
-const heroStyles=StyleSheet.create({
+const heroStyles=themed(() => StyleSheet.create({
   cream:{gap:10,paddingTop:6,paddingBottom:4},
   blue:{position:"relative",overflow:"hidden",borderRadius:radius.lg,backgroundColor:C.navy,padding:22,paddingTop:62,gap:10,minHeight:190,borderWidth:1,borderColor:C.navy2,...shadow},
   compact:{padding:18,paddingTop:56,minHeight:160},
@@ -311,7 +334,7 @@ const heroStyles=StyleSheet.create({
   pinDot:{width:8,height:8,borderRadius:4,backgroundColor:C.navy},
   eyebrowRow:{flexDirection:"row",alignItems:"center",gap:8},
   envelopeDeco:{flexDirection:"row",alignItems:"center",justifyContent:"flex-end",gap:6,marginBottom:-4,direction:"ltr"},
-  miniStamp:{width:44,height:48,padding:0,borderRadius:3,backgroundColor:C.white,alignItems:"center",justifyContent:"center"},
+  miniStamp:{width:44,height:48,padding:0,borderRadius:3,backgroundColor:C.surface,alignItems:"center",justifyContent:"center"},
   certOuter:{marginTop:30,backgroundColor:C.paper,borderRadius:22,borderWidth:1,borderColor:C.line,padding:8,...shadow},
   certInner:{borderWidth:2,borderColor:C.gold,borderRadius:16,padding:22,paddingTop:44,gap:11},
   medalWrap:{position:"absolute",top:-30,alignSelf:"center",left:0,right:0,alignItems:"center",zIndex:2},
@@ -319,4 +342,4 @@ const heroStyles=StyleSheet.create({
   medalInner:{width:42,height:42,borderRadius:21,borderWidth:1,borderStyle:"dashed",borderColor:C.navy,alignItems:"center",justifyContent:"center"},
   ribbonRow:{position:"absolute",top:44,flexDirection:"row",gap:6},
   ribbon:{width:14,height:28,backgroundColor:C.airRed,borderBottomLeftRadius:2,borderBottomRightRadius:2}
-});
+}));

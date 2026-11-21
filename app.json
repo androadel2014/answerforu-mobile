@@ -2,14 +2,14 @@
   "expo": {
     "name": "AnswerForU",
     "slug": "answerforu-site-parity",
-    "version": "3.7.0",
+    "version": "3.7.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "scheme": "answerforu",
     "android": {
       "package": "com.answerforu.app",
-      "versionCode": 19,
+      "versionCode": 20,
       "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {
@@ -35,8 +35,8 @@
     ],
     "extra": {
       "apiBaseUrl": "https://answerforu.com",
-      "webMasterVersion": "6.3.9",
-      "cleanMobileVersion": "3.7.0",
+      "webMasterVersion": "6.4.2",
+      "cleanMobileVersion": "3.7.1",
       "googleWebClientId": "816411262872-hhf8r29j0gt9p2russi232ji7vgmq1oj.apps.googleusercontent.com",
       "googleAndroidClientId": "",
       "googleIosClientId": ""

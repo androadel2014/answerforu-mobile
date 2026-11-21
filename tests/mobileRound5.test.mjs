@@ -10,11 +10,11 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const config=JSON.parse(read('app.json')).expo;
 
-test('website-themed version 3.7.0, code 18, Android ID and no SDK/permission expansion',()=>{
+test('website-themed version 3.7.1, code 20 (tester-fix release), Android ID and no SDK/permission expansion',()=>{
  const pkg=JSON.parse(read('package.json'));
- assert.equal(pkg.version,'3.7.0'); assert.equal(config.version,'3.7.0');
- assert.equal(config.android.versionCode,19);assert.equal(config.android.package,'com.answerforu.app');
- assert.equal(config.extra.webMasterVersion,'6.3.9');
+ assert.equal(pkg.version,'3.7.1'); assert.equal(config.version,'3.7.1');
+ assert.equal(config.android.versionCode,20);assert.equal(config.android.package,'com.answerforu.app');
+ assert.equal(config.extra.webMasterVersion,'6.4.2');
  for(const s of ['ads','analytics','firebase','amplitude','sentry'])assert.ok(!Object.keys(pkg.dependencies||{}).some(x=>x.toLowerCase().includes(s)),s);
  assert.equal(config.plugins.length,5);
 });
@@ -72,7 +72,8 @@ function harness(file){
   if(id.includes('/UI')||id==='./UI')return {Screen:'Screen',Txt:'Txt',Btn:'Btn',Card:'Card',SectionHero:'SectionHero',SectionHeading:'SectionHeading',AwareTextInput:'AwareTextInput',
    // v3.7.0 Airmail kit (re-exported by UI.js) — rendered as named host nodes like the rest.
    Icon:'Icon',AirmailStripe:'AirmailStripe',AirmailFrame:'AirmailFrame',AirmailDashes:'AirmailDashes',Stamp:'Stamp',Postmark:'Postmark',BrandMark:'BrandMark',Wordmark:'Wordmark',LangSwitch:'LangSwitch',IconChip:'IconChip',ArrowCircle:'ArrowCircle',RoadSignsArt:'RoadSignsArt',RouteArt:'RouteArt',TrustIcon:'TrustIcon',fwdIcon:l=>l==='ar'?'arrow-left':'arrow-right'};
-  if(id.includes('theme'))return {C:{teal:'#078B91',navy:'#10394A',sea:'#B2ECE2',ink:'#123346',muted:'#536C79',mist:'#E6F5F2'}};
+  // 3.7.1: theme.js also exports themed() (lazy per-appearance StyleSheets for dark mode).
+  if(id.includes('theme'))return {C:{teal:'#078B91',navy:'#10394A',sea:'#B2ECE2',ink:'#123346',muted:'#536C79',mist:'#E6F5F2'},themed:f=>f(),signPalette:{}};
   if(id.includes('i18n'))return {tr:(lang,ar,en,es=en)=>lang==='ar'?ar:lang==='es'?es:en};
   if(id.includes('/api/client'))return {api:{},rows:()=>[]};
   if(id.includes('/appSafety'))return {friendlyError:()=>''};

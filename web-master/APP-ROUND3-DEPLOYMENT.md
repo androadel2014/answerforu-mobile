@@ -1,3 +1,5 @@
+> ⚠ **Superseded (mobile 3.7.1):** website v6.4.2 already includes `POST /api/auth/oauth/google/mobile`. Do **not** deploy this v6.1.52 `index.php`; it would undo later website releases, including the v6.4.2 tester fixes.
+
 # APP-ROUND3 additive backend endpoint
 
 Original **website v6.1.52** remains authoritative. The bundled `public/api/index.php` is the FULL source file from that version, with one additive POST route immediately before `/auth/oauth/config`. Do **not** deploy the complete mobile ZIP to Bluehost; merge this one route into the currently deployed website source if its SHA-256 differs, preserve the live database, and run the website build path.

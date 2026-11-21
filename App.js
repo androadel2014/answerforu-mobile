@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, BackHandler, Keyboard, Platform, Pressable, StatusBar, StyleSheet, View } from "react-native";
+import { ActivityIndicator, BackHandler, Keyboard, Platform, Pressable, StatusBar, StyleSheet, View, useColorScheme } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "./src/components/AppHeader";
 import BottomNav from "./src/components/BottomNav";
 import { api } from "./src/api/client";
-import { clearSession, getLang, getIntroDone, setIntroDone, getToken, getUser, setLangStored, setToken, setUser as storeUser } from "./src/auth/storage";
-import { C } from "./src/theme";
+import { clearSession, getLang, getIntroDone, setIntroDone, getToken, getUser, setLangStored, setToken, setUser as storeUser, getThemePref, setThemePref } from "./src/auth/storage";
+import { C, themed, resolveScheme, setColorScheme } from "./src/theme";
 import { AirmailStripe, BrandMark, Btn, ErrorSurfaceContext, Icon, LangSwitch, Txt, Wordmark } from "./src/components/UI";
 import { tr } from "./src/i18n";
 import { friendlyError, withTimeout, STARTUP_TIMEOUT_MS } from "./src/logic/appSafety.mjs";
@@ -52,6 +52,21 @@ function Root() {
   // current screen is already showing its own <ErrorNotice> for the same failure.
   const [bannerDismissed,setBannerDismissed]=useState(false), [inlineErrors,setInlineErrors]=useState(0);
   const reportInlineError=useCallback(delta=>setInlineErrors(n=>Math.max(0,n+delta)),[]);
+  // 3.7.1 (tester item 7): dark mode — manual (light/dark) or automatic (follows the phone).
+  // The live colour tokens are switched before any child renders, so every screen redraws in
+  // the new appearance on the same pass (no remount: forms and scroll positions are kept).
+  const [themePref,setThemePrefState]=useState("auto");
+  const systemScheme=useColorScheme();
+  const resolvedTheme=resolveScheme(themePref,systemScheme);
+  setColorScheme(resolvedTheme);
+  useEffect(()=>{let alive=true;withTimeout(getThemePref(),STARTUP_TIMEOUT_MS,"auto").then(v=>{if(alive)setThemePrefState(v||"auto")}).catch(()=>{});return()=>{alive=false};},[]);
+  const changeTheme=useCallback(next=>{const v=next==="light"||next==="dark"?next:"auto";setThemePrefState(v);setThemePref(v).catch(()=>{});},[]);
+  const bar=<StatusBar barStyle={resolvedTheme==="dark"?"light-content":"dark-content"} backgroundColor={C.bg}/>;
+  // 3.7.1 (tester item 6): Arabic is right-to-left on EVERY screen, from the app root (the same
+  // mirroring I18nManager.forceRTL gives, but applied live when the language changes — forceRTL
+  // only takes effect after a full restart). Screens that never used <Screen> (Journey, listing
+  // details, directory) were left-to-right in Arabic before this.
+  const rootDir={direction:lang==="ar"?"rtl":"ltr"};
 
   useEffect(()=>{
     let alive=true;
@@ -99,11 +114,11 @@ function Root() {
   async function setLangTo(next){if(!["ar","en","es"].includes(next))return;setLang(next);await setLangStored(next).catch(()=>{});}
   async function updateUser(u){setUser(u);await storeUser(u);}
 
-  if(!ready)return <View style={st.splash}><StatusBar barStyle="dark-content"/><AirmailStripe height={8} style={st.splashStripeTop}/><View style={st.mark}><BrandMark size={72}/></View><Wordmark size={26}/><ActivityIndicator style={{marginTop:22}} size="large" color={C.royal}/><Txt lang={lang} style={{marginTop:16,color:C.ink,textAlign:"center"}}>{tr(lang,"جاري التحميل…","Loading…","Cargando…")}</Txt><AirmailStripe height={8} style={st.splashStripeBottom}/></View>;
-  if(showTour)return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}><StatusBar barStyle="dark-content"/><WelcomeTour lang={lang} onSetLang={setLangTo} onDone={()=>{setShowTour(false);setIntroDone().catch(()=>{})}}/></SafeAreaView>;
-  if(route.name==="auth")return <SafeAreaView style={st.safe}><StatusBar barStyle="dark-content"/><AuthScreen lang={lang} onAuth={onAuth} onLang={cycleLang} onSetLang={setLangTo} onBrowse={()=>{setAfterLogin(null);setRoute({name:"home",params:null})}}/></SafeAreaView>;
+  if(!ready)return <View style={st.splash}>{bar}<AirmailStripe height={8} style={st.splashStripeTop}/><View style={st.mark}><BrandMark size={72}/></View><Wordmark size={26}/><ActivityIndicator style={{marginTop:22}} size="large" color={C.blue}/><Txt lang={lang} style={{marginTop:16,color:C.ink,textAlign:"center"}}>{tr(lang,"جاري التحميل…","Loading…","Cargando…")}</Txt><AirmailStripe height={8} style={st.splashStripeBottom}/></View>;
+  if(showTour)return <SafeAreaView style={[st.safe,rootDir]} edges={["top","left","right","bottom"]}>{bar}<WelcomeTour lang={lang} onSetLang={setLangTo} onDone={()=>{setShowTour(false);setIntroDone().catch(()=>{})}}/></SafeAreaView>;
+  if(route.name==="auth")return <SafeAreaView style={[st.safe,rootDir]}>{bar}<AuthScreen lang={lang} onAuth={onAuth} onLang={cycleLang} onSetLang={setLangTo} onBrowse={()=>{setAfterLogin(null);setRoute({name:"home",params:null})}}/></SafeAreaView>;
 
-  const common={lang,user,navigate,params:route.params,back,onLogout:logout,onUser:updateUser};
+  const common={lang,user,navigate,params:route.params,back,onLogout:logout,onUser:updateUser,themePref,resolvedTheme,onTheme:changeTheme};
   let content=null;
   switch(route.name){
     case"home":content=<HomeScreen {...common}/>;break;
@@ -134,12 +149,12 @@ function Root() {
     default:content=<HomeScreen {...common}/>;
   }
   const active=route.name==="listingDetail"?"community":route.name==="citizenship"||route.name==="survival"||route.name==="offlinePacks"?"learn":MAIN.has(route.name)?route.name:(route.name==="recommend"||route.name==="directory"||route.name==="resources"?"all":route.name==="profile"||route.name==="messages"||route.name==="cv"||route.name==="feed"||route.name==="glossary"||route.name==="notifications"||route.name==="saved"||route.name==="verification"||route.name==="myRequests"||route.name==="admin"||route.name==="adminContent"?"all":"home");
-  return <SafeAreaView style={st.safe} edges={["top","left","right","bottom"]}>
-    <StatusBar barStyle="dark-content"/>
+  return <SafeAreaView style={[st.safe,rootDir]} edges={["top","left","right","bottom"]}>
+    {bar}
     <AppHeader lang={lang} user={user} onProfile={()=>navigate(token?"profile":"auth")} onNotifications={()=>navigate("notifications")} onLang={cycleLang} onSetLang={setLangTo}/>
-    <ErrorSurfaceContext.Provider value={reportInlineError}><View style={st.body}>{bootError&&!bannerDismissed&&inlineErrors===0?<View accessibilityRole="alert" style={st.bootNotice}><Icon name="alert-circle" size={18} color={C.red}/><Txt lang={lang} style={{color:C.navy,flex:1}}>{tr(lang,"بعض بياناتك ما اتحملتش. تقدر تكمل أو تجرّب تاني.","Some account details could not load. Continue or retry.","No se pudieron cargar algunos datos. Continúa o reintenta.")}</Txt><Btn lang={lang} variant="light" title={tr(lang,"إعادة","Retry","Reintentar")} onPress={()=>{setBootError("");setBannerDismissed(false);setBootAttempt(x=>x+1)}}/><Pressable accessibilityRole="button" accessibilityLabel={tr(lang,"إخفاء التنبيه","Dismiss","Cerrar")} hitSlop={8} onPress={()=>setBannerDismissed(true)} style={st.bootClose}><Icon name="x" size={18} color={C.navy}/></Pressable></View>:null}<ScreenErrorBoundary key={`${route.name}-${JSON.stringify(route.params?.id||route.params?.type||route.params?.tab||"")}-${screenRetry}`} lang={lang} onHome={()=>navigate("home")} onRetry={()=>setScreenRetry(x=>x+1)}>{content}</ScreenErrorBoundary></View></ErrorSurfaceContext.Provider>
+    <ErrorSurfaceContext.Provider value={reportInlineError}><View style={st.body}>{bootError&&!bannerDismissed&&inlineErrors===0?<View accessibilityRole="alert" style={st.bootNotice}><Icon name="alert-circle" size={18} color={C.redInk}/><Txt lang={lang} style={{color:C.ink,flex:1}}>{tr(lang,"بعض بياناتك ما اتحملتش. تقدر تكمل أو تجرّب تاني.","Some account details could not load. Continue or retry.","No se pudieron cargar algunos datos. Continúa o reintenta.")}</Txt><Btn lang={lang} variant="light" title={tr(lang,"إعادة","Retry","Reintentar")} onPress={()=>{setBootError("");setBannerDismissed(false);setBootAttempt(x=>x+1)}}/><Pressable accessibilityRole="button" accessibilityLabel={tr(lang,"إخفاء التنبيه","Dismiss","Cerrar")} hitSlop={8} onPress={()=>setBannerDismissed(true)} style={st.bootClose}><Icon name="x" size={18} color={C.ink}/></Pressable></View>:null}<ScreenErrorBoundary key={`${route.name}-${JSON.stringify(route.params?.id||route.params?.type||route.params?.tab||"")}-${screenRetry}`} lang={lang} onHome={()=>navigate("home")} onRetry={()=>setScreenRetry(x=>x+1)}>{content}</ScreenErrorBoundary></View></ErrorSurfaceContext.Provider>
     {!keyboardOpen ? <BottomNav active={active} lang={lang} onGo={navigate}/> : null}
   </SafeAreaView>;
 }
 export default function App(){return <SafeAreaProvider><Root/></SafeAreaProvider>}
-const st=StyleSheet.create({safe:{flex:1,backgroundColor:C.bg},body:{flex:1,backgroundColor:C.bg},bootNotice:{backgroundColor:C.redSoft,paddingVertical:8,paddingHorizontal:12,gap:8,flexDirection:"row",alignItems:"center",borderBottomWidth:1,borderBottomColor:C.redLine},bootClose:{width:36,height:36,borderRadius:18,alignItems:"center",justifyContent:"center"},splash:{flex:1,backgroundColor:C.bg,alignItems:"center",justifyContent:"center"},mark:{marginBottom:14,borderRadius:22,padding:6,backgroundColor:C.paper,borderWidth:3,borderStyle:"dotted",borderColor:C.dash},splashStripeTop:{position:"absolute",top:0,left:0,right:0},splashStripeBottom:{position:"absolute",bottom:0,left:0,right:0}});
+const st=themed(() => StyleSheet.create({safe:{flex:1,backgroundColor:C.bg},body:{flex:1,backgroundColor:C.bg},bootNotice:{backgroundColor:C.redSoft,paddingVertical:8,paddingHorizontal:12,gap:8,flexDirection:"row",alignItems:"center",borderBottomWidth:1,borderBottomColor:C.redLine},bootClose:{width:36,height:36,borderRadius:18,alignItems:"center",justifyContent:"center"},splash:{flex:1,backgroundColor:C.bg,alignItems:"center",justifyContent:"center"},mark:{marginBottom:14,borderRadius:22,padding:6,backgroundColor:C.paper,borderWidth:3,borderStyle:"dotted",borderColor:C.dash},splashStripeTop:{position:"absolute",top:0,left:0,right:0},splashStripeBottom:{position:"absolute",bottom:0,left:0,right:0}}));
