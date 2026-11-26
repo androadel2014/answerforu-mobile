@@ -8,7 +8,7 @@ import { C, themed } from "../theme";
 import { APP_VERSION } from "../config";
 import { tr } from "../i18n";
 import { friendlyError } from "../logic/appSafety.mjs";
-import PasswordInput,{passwordProblem} from "../components/PasswordInput";
+import PasswordInput,{passwordProblem,passwordServerProblem} from "../components/PasswordInput";
 export default function AuthScreen({lang,onAuth,onLang,onSetLang,onBrowse}){
   const [mode,setMode]=useState('login'),[username,setUsername]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const T=(ar,en,es)=>tr(lang,ar,en,es);
@@ -18,7 +18,7 @@ export default function AuthScreen({lang,onAuth,onLang,onSetLang,onBrowse}){
     if(mode==='register'){const problem=passwordProblem(lang,password,{username:username.trim(),email:email.trim()});if(problem){setError(problem);return;}}
     try{setBusy(true);if(mode==='forgot'){await api.forgotPassword(email.trim());setNotice(T('لو البريد مسجل عندنا، هنبعت لك رابط استرجاع كلمة المرور.','If the address exists, a reset link will arrive by email.','Si existe la cuenta, recibirás un enlace por correo.'));return;}
       const data=mode==='login'?await api.login(email.trim(),password):await api.register(username.trim(),email.trim(),password);await onAuth(data);
-    }catch(e){setError(friendlyError(e,lang))}finally{setBusy(false)}
+    }catch(e){setError(passwordServerProblem(lang,e)||friendlyError(e,lang))}finally{setBusy(false)}
   }
   // Same full-bleed language bar as every other screen (sits outside the padded page).
   // The build version is kept for QA as a testID only — it is no longer shown to users.

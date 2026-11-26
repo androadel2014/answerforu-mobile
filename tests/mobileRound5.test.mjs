@@ -10,13 +10,14 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const config=JSON.parse(read('app.json')).expo;
 
-test('website-themed version 3.7.1, code 20 (tester-fix release), Android ID and no SDK/permission expansion',()=>{
+test('website-themed version 3.7.2, code 21 (retouch release), Android ID and no SDK/permission expansion',()=>{
  const pkg=JSON.parse(read('package.json'));
- assert.equal(pkg.version,'3.7.1'); assert.equal(config.version,'3.7.1');
- assert.equal(config.android.versionCode,20);assert.equal(config.android.package,'com.answerforu.app');
- assert.equal(config.extra.webMasterVersion,'6.4.2');
+ assert.equal(pkg.version,'3.7.2'); assert.equal(config.version,'3.7.2');
+ assert.equal(config.android.versionCode,21);assert.equal(config.android.package,'com.answerforu.app');
+ assert.equal(config.extra.webMasterVersion,'6.4.3');
  for(const s of ['ads','analytics','firebase','amplitude','sentry'])assert.ok(!Object.keys(pkg.dependencies||{}).some(x=>x.toLowerCase().includes(s)),s);
- assert.equal(config.plugins.length,5);
+ // 3.7.2: +2 plugins on purpose — expo-system-ui (Android automatic dark mode) and expo-splash-screen (dark launch screen).
+ assert.equal(config.plugins.length,7);
 });
 test('design system is actually used in every requested screen, not just color tokens',()=>{
  const files=['HomeScreen','JourneyScreen','CommunityScreen','CitizenshipScreen','LearnScreen','SurvivalEnglishScreen','CVScreen','AuthScreen'];

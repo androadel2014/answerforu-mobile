@@ -7,6 +7,7 @@ import { C, themed } from "../theme";
 import { tr } from "../i18n";
 import {friendlyError} from "../logic/appSafety.mjs";
 import {buildSelection,localizeQuestion} from "../logic/quizSelection.mjs";
+import { hostedCurrencyPhoto } from "../logic/currencyPhotos.mjs";
 import SignTile,{SignGraphic} from "../components/SignTile";
 
 // The PHP API is the single source of content; do not duplicate the lesson catalog in the APK.
@@ -84,8 +85,10 @@ function QuizView({ bank, lang, onReview }) {
 }
 function Currency({ item, lang }) {
   const [side,setSide] = useState("front");
-  const photo = item?.[`${side}_local`] || item?.[side];
-  const fallback = item?.[`${side}_fallback`] || item?.[`${side}_official_url`] || item?.[side];
+  // 3.7.2 (website 6.4.3): currency photos only from AnswerForU — the stored copy, then the copy
+  // bundled in the website release; the official page stays a link (OpenSource below).
+  const photo = hostedCurrencyPhoto(item?.[`${side}_local`]) || hostedCurrencyPhoto(item?.[side]);
+  const fallback = hostedCurrencyPhoto(item?.[`${side}_fallback`]);
   return <Card style={{gap:10}}>
     <Txt lang={lang} weight="900" style={{fontSize:19}}>{item.name || item.id} · {item.value}</Txt>
     <Txt lang={lang} style={{color:C.muted}}>{localized(item.caption || item.note,lang)}</Txt>

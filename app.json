@@ -2,14 +2,14 @@
   "expo": {
     "name": "AnswerForU",
     "slug": "answerforu-site-parity",
-    "version": "3.7.1",
+    "version": "3.7.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "answerforu",
     "android": {
       "package": "com.answerforu.app",
-      "versionCode": 20,
+      "versionCode": 21,
       "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": true,
       "adaptiveIcon": {
@@ -31,12 +31,25 @@
           "speechRecognitionPermission": "Allow AnswerForU to transcribe your practice answers."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-system-ui",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAF3E0",
+          "image": "./assets/icon.png",
+          "imageWidth": 180,
+          "dark": {
+            "backgroundColor": "#0B1220",
+            "image": "./assets/icon.png"
+          }
+        }
+      ]
     ],
     "extra": {
       "apiBaseUrl": "https://answerforu.com",
-      "webMasterVersion": "6.4.2",
-      "cleanMobileVersion": "3.7.1",
+      "webMasterVersion": "6.4.3",
+      "cleanMobileVersion": "3.7.2",
       "googleWebClientId": "816411262872-hhf8r29j0gt9p2russi232ji7vgmq1oj.apps.googleusercontent.com",
       "googleAndroidClientId": "",
       "googleIosClientId": ""

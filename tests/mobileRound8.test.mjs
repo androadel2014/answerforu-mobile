@@ -102,7 +102,7 @@ test('items 9–12 + 14: Learn reflects every topic, hosted currency photos, pad
  const l=read('src/screens/LearnScreen.js');
  for(const k of ['guides','currency','signs','quiz','stores','services','education','measure'])assert.match(l,new RegExp(`\\b${k}: \\[\\[`),k);
  assert.match(l,/\[\(data\.life_guides\|\|\[\]\)\.length,tr\(lang,"دليل للحياة اليومية"/);
- assert.match(l,/unavailable=\{<View style=\{styles\.unavailable\}>/);assert.match(l,/setTimeout\(failOver, 8000\)/);assert.match(l,/item\?\.\[`\$\{side\}_local`\] \|\| item\?\.\[side\]/);
+ assert.match(l,/unavailable=\{<View style=\{styles\.unavailable\}>/);assert.match(l,/setTimeout\(failOver, 8000\)/);assert.match(l,/hostedCurrencyPhoto\(item\?\.\[`\$\{side\}_local`\]\) \|\| hostedCurrencyPhoto\(item\?\.\[side\]\)/); // 3.7.2: hosted copies only (see round 9)
  assert.match(l,/<SignGraphic shape=\{item\.shape\}/);assert.match(l,/<SignTile /);
  assert.match(l,/if \(finished\) \{/);assert.match(l,/"اعرض النتيجة","See my result"/);assert.doesNotMatch(l,/setI\(0\);setSelected\(null\);setScore\(0\);setRun/);
  assert.match(l,/balanceCategories: true/);
@@ -123,8 +123,8 @@ test('item 16: 8-character password with show/hide and a strength meter (same li
  const webList=fs.existsSync(path.join(root,'../AnswerForU-v6.4.1/source-original/src/lib/passwordPolicy.js'))?read('../AnswerForU-v6.4.1/source-original/src/lib/passwordPolicy.js'):null;
  if(webList)assert.ok(read('src/logic/passwordPolicy.mjs').includes(webList.slice(webList.indexOf('export const COMMON_PASSWORDS'),webList.indexOf(']);')+3)),'same common list as the website');
 });
-test('release: 3.7.1 / versionCode 20, no new dependency, plugin or permission',()=>{
+test('release (3.7.1 round, re-pinned for 3.7.2): only expo-system-ui + expo-splash-screen added, no permission',()=>{
  const pkg=JSON.parse(read('package.json')),app=JSON.parse(read('app.json')).expo;
- assert.equal(pkg.version,'3.7.1');assert.equal(app.version,'3.7.1');assert.equal(app.android.versionCode,20);assert.equal(app.plugins.length,5);assert.equal(app.android.permissions,undefined);
- assert.deepEqual(Object.keys(pkg.dependencies).sort(),['@expo/vector-icons','expo','expo-auth-session','expo-crypto','expo-document-picker','expo-file-system','expo-image-picker','expo-linking','expo-notifications','expo-secure-store','expo-sharing','expo-speech','expo-speech-recognition','expo-web-browser','react','react-native','react-native-safe-area-context']);
+ assert.equal(pkg.version,'3.7.2');assert.equal(app.version,'3.7.2');assert.equal(app.android.versionCode,21);assert.equal(app.plugins.length,7);assert.equal(app.android.permissions,undefined);
+ assert.deepEqual(Object.keys(pkg.dependencies).sort(),['@expo/vector-icons','expo','expo-auth-session','expo-crypto','expo-document-picker','expo-file-system','expo-image-picker','expo-linking','expo-notifications','expo-secure-store','expo-sharing','expo-speech','expo-speech-recognition','expo-splash-screen','expo-system-ui','expo-web-browser','react','react-native','react-native-safe-area-context']);
 });

@@ -8,15 +8,25 @@ import {PASSWORD_MIN_LENGTH,passwordStrength,validatePassword} from '../logic/pa
  * AnswerForU mobile 3.7.1 — tester item 16 (owner decision: minimum 8 characters, a show/hide
  * button and a strength meter). Same policy and common-password list as the website and the API.
  */
-export function passwordProblem(lang,password,context={}){
-  const r=validatePassword(password,context);
-  if(r.ok)return '';
+export function passwordReasonText(lang,reason){
   return {
     short:tr(lang,`كلمة المرور لازم تكون ${PASSWORD_MIN_LENGTH} حروف على الأقل.`,`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`,`La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`),
     long:tr(lang,'كلمة المرور طويلة جدًا.','Password is too long.','La contraseña es demasiado larga.'),
     common:tr(lang,'كلمة المرور دي مشهورة وسهل تخمينها — اختار غيرها.','This password is too common and easy to guess — choose another.','Esta contraseña es muy común; elige otra.'),
     personal:tr(lang,'ما تستخدمش اسمك أو بريدك ككلمة مرور.','Do not use your name or email as the password.','No uses tu nombre ni tu correo como contraseña.'),
-  }[r.reason]||'';
+  }[reason]||'';
+}
+export function passwordProblem(lang,password,context={}){
+  const r=validatePassword(password,context);
+  return r.ok?'':passwordReasonText(lang,r.reason);
+}
+// 3.7.2 (live check of the 8-character rule): the server answers 422 with one of these codes
+// (register, change password, reset link). Show the same words as the app's own check, in
+// the app's language — never the server's Arabic-only text or a generic "try again".
+const SERVER_PASSWORD_REASONS={PASSWORD_TOO_SHORT:'short',PASSWORD_TOO_LONG:'long',PASSWORD_TOO_COMMON:'common',PASSWORD_IS_PERSONAL:'personal'};
+export function passwordServerProblem(lang,error){
+  const reason=SERVER_PASSWORD_REASONS[error?.data?.code];
+  return reason?passwordReasonText(lang,reason):'';
 }
 export default function PasswordInput({lang='ar',label,value,onChangeText,meter=false,context={},placeholder,autoComplete='password',textContentType='password'}){
   const [shown,setShown]=useState(false);

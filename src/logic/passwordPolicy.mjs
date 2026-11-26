@@ -19,6 +19,25 @@ export const COMMON_PASSWORDS = new Set([
   'answerforu1', 'answerforu123', 'america1', 'america123', 'egypt123', 'cairo123', 'mohamed1', 'mohamed123', 'ahmed123', 'qwer1234',
 ]);
 
+/**
+ * v6.4.3 / app 3.7.2 (end-to-end check of the 8-character rule): count the way the
+ * server does. PHP counts characters with mb_strlen (Unicode code points) and caps
+ * the size in UTF-8 bytes; JavaScript's .length counts UTF-16 units, so a password
+ * with an emoji could pass here and then be refused by the server.
+ */
+export function passwordLength(password) {
+  return Array.from(String(password || '')).length;
+}
+
+export function passwordBytes(password) {
+  let bytes = 0;
+  for (const ch of String(password || '')) {
+    const cp = ch.codePointAt(0);
+    bytes += cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4;
+  }
+  return bytes;
+}
+
 export function isCommonPassword(password) {
   return COMMON_PASSWORDS.has(String(password || '').toLowerCase());
 }
@@ -29,8 +48,8 @@ export function isCommonPassword(password) {
  */
 export function validatePassword(password, context = {}) {
   const value = String(password || '');
-  if (value.length < PASSWORD_MIN_LENGTH) return { ok: false, reason: 'short' };
-  if (value.length > PASSWORD_MAX_LENGTH) return { ok: false, reason: 'long' };
+  if (passwordLength(value) < PASSWORD_MIN_LENGTH) return { ok: false, reason: 'short' };
+  if (passwordBytes(value) > PASSWORD_MAX_LENGTH) return { ok: false, reason: 'long' };
   if (isCommonPassword(value)) return { ok: false, reason: 'common' };
   const lower = value.toLowerCase();
   const personal = [context.username, String(context.email || '').split('@')[0]].map((x) => String(x || '').toLowerCase()).filter((x) => x.length >= 4);
@@ -60,12 +79,13 @@ export function passwordStrength(password, context = {}) {
   if (!validity.ok) return { score: 0, level: validity.reason === 'short' ? 'short' : 'weak', reason: validity.reason };
   const lower = value.toLowerCase();
   let points = 0;
-  if (value.length >= 8) points += 1;
-  if (value.length >= 12) points += 1;
-  if (value.length >= 16) points += 1;
+  const length = passwordLength(value);
+  if (length >= 8) points += 1;
+  if (length >= 12) points += 1;
+  if (length >= 16) points += 1;
   const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((re) => re.test(value)).length + (/[^\x00-\x7F]/.test(value) ? 1 : 0);
   if (classes >= 3) points += 1;
-  if (classes >= 4 || (classes >= 3 && value.length >= 12)) points += 1;
+  if (classes >= 4 || (classes >= 3 && length >= 12)) points += 1;
   if (/(.)\1{2,}/.test(value)) points -= 1;
   if (hasSequence(lower)) points -= 1;
   if (new Set(value).size <= 4) points -= 1;

@@ -32,10 +32,10 @@ test('version is from a single mobile constant, aligned with package and Expo ap
  const conf=fs.readFileSync(new URL('../src/config.js',import.meta.url),'utf8');
  const app=JSON.parse(fs.readFileSync(new URL('../app.json',import.meta.url)));
  const pkg=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url)));
- // 3.7.1 (tester-fix release, versionCode 20): was 3.7.0 / code 19 / website 6.3.9.
- assert.match(conf,/APP_VERSION\s*=\s*["']3\.7\.1["']/);
- for(const version of [app.expo.version,pkg.version,app.expo.extra.cleanMobileVersion])assert.equal(version,'3.7.1');
- assert.equal(app.expo.extra.webMasterVersion,'6.4.2');assert.equal(app.expo.android.versionCode,20);
+ // 3.7.2 (retouch release, versionCode 21): was 3.7.1 / code 20 / website 6.4.2 (before: 3.7.0 / 19 / 6.3.9).
+ assert.match(conf,/APP_VERSION\s*=\s*["']3\.7\.2["']/);
+ for(const version of [app.expo.version,pkg.version,app.expo.extra.cleanMobileVersion])assert.equal(version,'3.7.2');
+ assert.equal(app.expo.extra.webMasterVersion,'6.4.3');assert.equal(app.expo.android.versionCode,21);
  assert.equal(app.expo.android.package,'com.answerforu.app');
  assert.equal(app.expo.extra.apiBaseUrl,'https://answerforu.com');
  for(const file of ['src/components/AppHeader.js','src/screens/AllSectionsScreen.js','src/screens/AuthScreen.js'])

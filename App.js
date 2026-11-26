@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, BackHandler, Keyboard, Platform, Pressable, StatusBar, StyleSheet, View, useColorScheme } from "react-native";
+import { ActivityIndicator, Appearance, BackHandler, Keyboard, Platform, Pressable, StatusBar, StyleSheet, View, useColorScheme } from "react-native";
+import * as SystemUI from "expo-system-ui";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "./src/components/AppHeader";
 import BottomNav from "./src/components/BottomNav";
@@ -61,6 +62,12 @@ function Root() {
   setColorScheme(resolvedTheme);
   useEffect(()=>{let alive=true;withTimeout(getThemePref(),STARTUP_TIMEOUT_MS,"auto").then(v=>{if(alive)setThemePrefState(v||"auto")}).catch(()=>{});return()=>{alive=false};},[]);
   const changeTheme=useCallback(next=>{const v=next==="light"||next==="dark"?next:"auto";setThemePrefState(v);setThemePref(v).catch(()=>{});},[]);
+  // 3.7.2: a manual Light / Dark choice is passed to the phone too, so native pieces (alerts, the
+  // keyboard) match the app; "auto" removes the override and follows the phone again.
+  useEffect(()=>{try{if(typeof Appearance?.setColorScheme==="function")Appearance.setColorScheme(themePref==="light"||themePref==="dark"?themePref:"auto");}catch{}},[themePref]);
+  // 3.7.2 (expo-system-ui — Android automatic dark mode): the window behind the screens (seen during
+  // transitions, behind the keyboard and the picker sheets) takes the active background colour.
+  useEffect(()=>{try{SystemUI.setBackgroundColorAsync(C.bg)?.catch?.(()=>{});}catch{}},[resolvedTheme]);
   const bar=<StatusBar barStyle={resolvedTheme==="dark"?"light-content":"dark-content"} backgroundColor={C.bg}/>;
   // 3.7.1 (tester item 6): Arabic is right-to-left on EVERY screen, from the app root (the same
   // mirroring I18nManager.forceRTL gives, but applied live when the language changes — forceRTL

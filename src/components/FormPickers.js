@@ -1,5 +1,6 @@
 import React,{useMemo,useState} from 'react';
-import {Modal,Pressable,ScrollView,TextInput,View} from 'react-native';
+import {KeyboardAvoidingView,Modal,Pressable,ScrollView,StyleSheet,TextInput,View} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Btn,Icon,Txt} from './UI';
 import {C} from '../theme';
 import {tr,isRTL} from '../i18n';
@@ -23,14 +24,22 @@ function FieldShell({lang,label,text,placeholder,icon,onPress,invalid,accessibil
   </View>;
 }
 function Sheet({lang,visible,onClose,title,children,footer}){
+  // 3.7.2 (device-test prep): the dimmed backdrop is a sibling BEHIND the sheet instead of wrapping
+  // it — a wrapping Pressable can swallow scroll gestures on Android (state list, year grid). The
+  // keyboard-avoiding view lifts the sheet above the keyboard (state search) and the bottom inset
+  // keeps the buttons clear of the navigation bar.
+  const insets=useSafeAreaInsets();
   return <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-    <Pressable accessibilityRole="button" accessibilityLabel={tr(lang,'إغلاق','Close','Cerrar')} onPress={onClose} style={{flex:1,backgroundColor:'rgba(0,0,0,.45)',justifyContent:'flex-end'}}>
-      <Pressable onPress={()=>{}} style={[{backgroundColor:C.bg,borderTopLeftRadius:22,borderTopRightRadius:22,padding:16,gap:12,maxHeight:'88%'},dirOf(lang)]}>
-        <View style={{flexDirection:'row',alignItems:'center',gap:10}}><Txt lang={lang} weight="900" style={{fontSize:18,flex:1}}>{title}</Txt><Pressable accessibilityRole="button" accessibilityLabel={tr(lang,'إغلاق','Close','Cerrar')} onPress={onClose} style={{width:40,height:40,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:C.paper}}><Icon name="x" size={20} color={C.ink}/></Pressable></View>
-        {children}
-        {footer}
-      </Pressable>
-    </Pressable>
+    <KeyboardAvoidingView behavior="padding" style={{flex:1}}>
+      <View style={{flex:1,justifyContent:'flex-end'}}>
+        <Pressable accessibilityRole="button" accessibilityLabel={tr(lang,'إغلاق','Close','Cerrar')} onPress={onClose} style={[StyleSheet.absoluteFill,{backgroundColor:'rgba(0,0,0,.45)'}]}/>
+        <View style={[{backgroundColor:C.bg,borderTopLeftRadius:22,borderTopRightRadius:22,padding:16,paddingBottom:16+(insets?.bottom||0),gap:12,maxHeight:'88%'},dirOf(lang)]}>
+          <View style={{flexDirection:'row',alignItems:'center',gap:10}}><Txt lang={lang} weight="900" style={{fontSize:18,flex:1}}>{title}</Txt><Pressable accessibilityRole="button" accessibilityLabel={tr(lang,'إغلاق','Close','Cerrar')} onPress={onClose} style={{width:40,height:40,borderRadius:20,alignItems:'center',justifyContent:'center',backgroundColor:C.paper}}><Icon name="x" size={20} color={C.ink}/></Pressable></View>
+          {children}
+          {footer}
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   </Modal>;
 }
 const cell={width:'14.2857%',aspectRatio:1,alignItems:'center',justifyContent:'center'};
@@ -65,7 +74,7 @@ export function DateField({lang='ar',label,value,onChange,min,max,placeholder,de
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={tr(lang,'الشهر التالي','Next month','Mes siguiente')} onPress={()=>step(1)} style={navBtn}><Icon name={rtl?'chevron-left':'chevron-right'} size={22} color={C.ink}/></Pressable>
       </View>
-      {mode==='years'?<ScrollView style={{maxHeight:340}} contentContainerStyle={{flexDirection:'row',flexWrap:'wrap',gap:8,paddingBottom:6}}>
+      {mode==='years'?<ScrollView keyboardShouldPersistTaps="handled" style={{maxHeight:340,flexShrink:1}} contentContainerStyle={{flexDirection:'row',flexWrap:'wrap',gap:8,paddingBottom:6}}>
         {years.map(y=><Pressable key={y} accessibilityRole="button" accessibilityState={{selected:y===view.year}} onPress={()=>{setView(v=>({...v,year:y}));setMode('months');}} style={[chip,y===view.year&&chipOn()]}><Txt weight="900" style={{color:y===view.year?C.onDark:C.ink,textAlign:'center'}}>{String(y)}</Txt></Pressable>)}
       </ScrollView>:mode==='months'?<View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>
         {monthNames(lang).map((name,m)=><Pressable key={name} accessibilityRole="button" onPress={()=>{setView(v=>({...v,month:m}));setMode('days');}} style={[chip,{width:'31%'},m===view.month&&chipOn()]}><Txt lang={lang} weight="800" style={{color:m===view.month?C.onDark:C.ink,textAlign:'center'}}>{name}</Txt></Pressable>)}
@@ -118,7 +127,7 @@ export function StatePicker({lang='ar',label,value,onChange,placeholder,allowEmp
     <FieldShell lang={lang} label={label} icon="map-pin" text={text} placeholder={placeholder||tr(lang,'اختر الولاية','Choose a state','Elige un estado')} onPress={()=>setOpen(true)}/>
     <Sheet lang={lang} visible={open} onClose={()=>setOpen(false)} title={label||tr(lang,'الولاية','State','Estado')}>
       <TextInput autoFocus value={query} onChangeText={setQuery} placeholder={tr(lang,'ابحث باسم الولاية أو الرمز (VA)','Search by name or code (VA)','Busca por nombre o código (VA)')} placeholderTextColor={C.placeholder} textAlign={isRTL(lang)?'right':'left'} style={{minHeight:50,borderRadius:13,borderWidth:1.3,borderColor:C.inputBorder,backgroundColor:C.paper,paddingHorizontal:14,color:C.ink,fontSize:16}}/>
-      <ScrollView keyboardShouldPersistTaps="handled" style={{maxHeight:380}}>
+      <ScrollView keyboardShouldPersistTaps="handled" style={{maxHeight:380,flexShrink:1}}>
         {allowEmpty?<Pressable accessibilityRole="button" onPress={()=>choose('')} style={row}><Txt lang={lang} weight="800" style={{color:C.blue}}>{emptyLabel||tr(lang,'كل الولايات','All states','Todos los estados')}</Txt></Pressable>:null}
         {results.map(o=><Pressable key={o.code} accessibilityRole="button" accessibilityState={{selected:o.code===code}} onPress={()=>choose(o.code)} style={[row,o.code===code&&{backgroundColor:C.royalSoft}]}>
           <Txt lang={lang} weight="800" style={{flex:1}}>{o.label}</Txt><Txt weight="900" style={{color:C.muted}}>{o.code}</Txt>
